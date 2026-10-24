@@ -48,6 +48,11 @@ class Evidence:
     origin: str
     attachments: tuple[Attachment, ...] = ()
 
+    def __post_init__(self) -> None:
+        # Normalize to plain JSON values up front so a record behaves identically before and
+        # after a round trip through the store (dates become ISO strings, tuples lists).
+        object.__setattr__(self, "data", to_jsonable(self.data))
+
     def identity(self) -> dict[str, Any]:
         """The hashed portion of the record. ``origin`` is excluded so that relocating raw
         files does not change a digest; attachment digests are included."""
@@ -214,6 +219,7 @@ class ControlResult:
     tsc: tuple[str, ...]
     iso: tuple[str, ...]
     exceptions_applied: tuple[str, ...] = ()
+    notes: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -224,6 +230,7 @@ class ControlResult:
             "tsc": list(self.tsc),
             "iso": list(self.iso),
             "exceptions_applied": list(self.exceptions_applied),
+            "notes": list(self.notes),
             "rules": [r.to_dict() for r in self.rules],
         }
 
