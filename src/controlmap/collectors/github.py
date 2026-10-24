@@ -266,6 +266,8 @@ def _decode_content(payload: Any) -> str:
     if not isinstance(payload, Mapping) or payload.get("encoding") != "base64":
         raise CollectorError("contents API response is not a base64-encoded file")
     try:
-        return base64.b64decode(str(payload.get("content", ""))).decode("utf-8")
+        # GitHub wraps base64 at 60 columns; strip whitespace, then decode strictly.
+        compact = "".join(str(payload.get("content", "")).split())
+        return base64.b64decode(compact, validate=True).decode("utf-8")
     except (binascii.Error, UnicodeDecodeError) as exc:
         raise CollectorError(f"cannot decode file contents: {exc}") from exc
