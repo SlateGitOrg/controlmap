@@ -1,0 +1,3 @@
+*                       @acme/frontend
+/.github/workflows/     @acme/platform
+docs/                   @acme/frontend @acme/docs

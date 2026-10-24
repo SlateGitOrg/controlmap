@@ -1,0 +1,10 @@
+employee_id,email,status,start_date,termination_date,department,manager_email,training_completed_on
+E001,alice.admin@acme.example,active,2021-03-01,,Engineering,hana@acme.example,2026-02-10
+E002,bao@acme.example,active,2022-06-13,,Engineering,alice.admin@acme.example,2026-03-01
+E003,carmen@acme.example,active,2023-01-09,,Finance,hana@acme.example,2025-11-20
+E004,dev.k@acme.example,active,2024-04-02,,Sales,hana@acme.example,2026-04-15
+E005,eli@acme.example,terminated,2022-02-01,2026-09-12,Engineering,alice.admin@acme.example,2026-01-10
+E006,farah@acme.example,terminated,2020-05-04,2026-08-01,Support,hana@acme.example,2025-09-01
+E007,gus@acme.example,active,2026-09-22,,Engineering,alice.admin@acme.example,
+E008,hana@acme.example,active,2021-08-16,,Security,,2026-06-01
+E009,ivan@acme.example,leave,2023-05-15,,Support,hana@acme.example,2025-12-01

@@ -1,0 +1,18 @@
+# Same company, but GitHub evidence is pulled through the REST API (API mode). The demo points
+# GITHUB_API_URL at the bundled offline mock (`controlmap mock-github`); nothing leaves localhost.
+company: Acme Cloud, Inc. (fictional)
+store: .controlmap/api-store
+library: library/controls.yaml
+exceptions: exceptions.yaml
+as_of: 2026-10-01
+collectors:
+  - name: github-api
+    type: github
+    collected_at: 2026-09-30T09:00:00Z
+    api:
+      base_url: ${GITHUB_API_URL:-http://127.0.0.1:8765}
+      token_env: GITHUB_TOKEN
+    repos:
+      - {repo: acme/api}
+      - {repo: acme/web}
+      - {repo: acme/sandbox}

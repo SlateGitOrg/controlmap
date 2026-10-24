@@ -1,0 +1,26 @@
+# Known outcomes of the sample company as of 2026-10-01, and why. tests/test_acme_golden.py
+# asserts these exactly, so a change in rule semantics shows up as a test failure here.
+as_of: 2026-10-01
+controls:
+  AC-01: {status: FAIL, why: "dev.k is enrolled only in SMS, which the control disallows"}
+  AC-02: {status: PASS, why: "two human admins with MFA; root has MFA and no keys"}
+  AC-03: {status: FAIL, why: "eli was terminated 2026-09-12 but the IdP account is still active"}
+  AC-04: {status: EXCEPTED, why: "svc-legacy-export idle 152 days, covered by active EXC-2026-001"}
+  AC-05: {status: PASS, why: "Q3 access review performed 2026-07-15 and approved"}
+  AC-06: {status: PASS, why: "password policy: 16 characters, 24 remembered"}
+  BC-01: {status: NO_EVIDENCE, why: "backups pass, but no disaster-recovery test document exists"}
+  CM-01: {status: FAIL, why: "acme/web lets administrators bypass branch protection"}
+  CM-02: {status: PASS, why: "all repos have a catch-all owner; deploy workflow is owned"}
+  CR-01: {status: PASS, why: "every bucket encrypted; the customer KMS key rotates"}
+  EP-01: {status: STALE, why: "all disks encrypted, but the inventory is 11 days old (window 7)"}
+  EP-02: {status: FAIL, why: "EDR on D-1004 and D-1005 silent for more than 14 days"}
+  EP-03: {status: PASS, why: "supported OS versions and screen lock <= 15 minutes everywhere"}
+  EP-04: {status: FAIL, why: "laptop D-1005 still assigned to terminated employee eli"}
+  GV-01: {status: PASS, why: "policy review 2026-02-03 approved by the CEO"}
+  HR-01: {status: PASS, why: "training current; new hire gus is inside the 30-day grace period"}
+  IR-01: {status: FAIL, why: "last incident-response tabletop was 476 days ago (limit 365)"}
+  LM-01: {status: PASS, why: "org-trail is multi-region, logging, with log-file validation"}
+  NW-01: {status: EXCEPTED, why: "public marketing bucket covered by EXC-2026-002 (expiring soon)"}
+  NW-02: {status: FAIL, why: "SSH open to the internet; EXC-2025-007 expired on 2026-09-15"}
+  RA-01: {status: PASS, why: "2026 risk assessment approved 2026-01-30"}
+  VM-01: {status: PASS, why: "September scan review performed 2026-09-10"}

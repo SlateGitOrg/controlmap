@@ -1,0 +1,6 @@
+account,system,role,reviewer_role,decision
+alice.admin@acme.example,aws-prod,admin,VP Engineering,keep
+bao@acme.example,aws-prod,developer,VP Engineering,keep
+eli@acme.example,aws-prod,developer,VP Engineering,keep
+svc-ci@acme.example,aws-prod,deployer,Head of Infrastructure,keep
+old-contractor@acme.example,aws-prod,developer,VP Engineering,revoke

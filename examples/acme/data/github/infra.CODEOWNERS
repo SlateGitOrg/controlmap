@@ -1,0 +1,2 @@
+*                       @acme/platform
+/modules/iam/           @acme/security @acme/platform

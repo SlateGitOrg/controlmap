@@ -1,0 +1,35 @@
+# Sample project for a fictional company. Every data file under data/ is synthetic.
+company: Acme Cloud, Inc. (fictional)
+store: .controlmap/store
+library: library/controls.yaml
+exceptions: exceptions.yaml
+as_of: 2026-10-01
+collectors:
+  - name: github
+    type: github
+    collected_at: 2026-09-30T09:00:00Z     # when the `gh api` responses were saved
+    repos:
+      - {repo: acme/api, branch: main, protection: data/github/api.main.protection.json, codeowners: data/github/api.CODEOWNERS}
+      - {repo: acme/web, branch: main, protection: data/github/web.main.protection.json, codeowners: data/github/web.CODEOWNERS}
+      - {repo: acme/infra, branch: main, protection: data/github/infra.main.protection.json, codeowners: data/github/infra.CODEOWNERS}
+  - name: aws-prod
+    type: aws_snapshot
+    path: data/aws/prod-snapshot-2026-09-28.json   # captured_at inside the file
+  - name: okta
+    type: idp_csv
+    preset: okta
+    tenant: acme
+    path: data/idp/okta-users-2026-09-30.csv
+    admin_groups: [Okta Admins, Security Admins]
+    collected_at: 2026-09-30T18:00:00Z
+  - name: workday
+    type: hris_csv
+    path: data/hris/roster-2026-09-30.csv
+    collected_at: 2026-09-30T18:05:00Z
+  - name: jamf
+    type: endpoint_csv
+    path: data/endpoints/mdm-inventory-2026-09-20.csv
+    collected_at: 2026-09-20T07:30:00Z
+  - name: compliance-docs
+    type: manual_documents
+    path: data/documents                    # each descriptor carries recorded_at

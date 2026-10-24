@@ -1,0 +1,67 @@
+{
+  "format": "controlmap-aws-snapshot/1",
+  "account_id": "111122223333",
+  "captured_at": "2026-09-28T02:00:00Z",
+  "iam": {
+    "account_summary": {"SummaryMap": {"AccountMFAEnabled": 1, "AccountAccessKeysPresent": 0, "Users": 4}},
+    "password_policy": {
+      "PasswordPolicy": {
+        "MinimumPasswordLength": 16,
+        "RequireSymbols": true,
+        "RequireNumbers": true,
+        "RequireUppercaseCharacters": true,
+        "RequireLowercaseCharacters": true,
+        "PasswordReusePrevention": 24
+      }
+    }
+  },
+  "s3": {
+    "buckets": [
+      {
+        "Name": "acme-prod-data",
+        "encryption": {"ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "alias/acme-data"}, "BucketKeyEnabled": true}]}},
+        "public_access_block": {"PublicAccessBlockConfiguration": {"BlockPublicAcls": true, "IgnorePublicAcls": true, "BlockPublicPolicy": true, "RestrictPublicBuckets": true}}
+      },
+      {
+        "Name": "acme-logs",
+        "encryption": {"ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}},
+        "public_access_block": {"PublicAccessBlockConfiguration": {"BlockPublicAcls": true, "IgnorePublicAcls": true, "BlockPublicPolicy": true, "RestrictPublicBuckets": true}}
+      },
+      {
+        "Name": "acme-public-assets",
+        "encryption": {"ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}},
+        "public_access_block": {"PublicAccessBlockConfiguration": {"BlockPublicAcls": false, "IgnorePublicAcls": false, "BlockPublicPolicy": false, "RestrictPublicBuckets": false}}
+      }
+    ]
+  },
+  "cloudtrail": {
+    "describe_trails": {
+      "trailList": [
+        {"Name": "org-trail", "TrailARN": "arn:aws:cloudtrail:us-east-1:111122223333:trail/org-trail", "HomeRegion": "us-east-1", "IsMultiRegionTrail": true, "LogFileValidationEnabled": true, "KmsKeyId": "arn:aws:kms:us-east-1:111122223333:key/0000aaaa-1111-2222-3333-444455556666"}
+      ]
+    },
+    "trail_status": {"org-trail": {"IsLogging": true}}
+  },
+  "kms": {
+    "keys": [
+      {"alias": "alias/acme-data", "KeyMetadata": {"KeyId": "0000aaaa-1111-2222-3333-444455556666", "KeyManager": "CUSTOMER", "KeyState": "Enabled", "KeySpec": "SYMMETRIC_DEFAULT"}, "rotation": {"KeyRotationEnabled": true}},
+      {"alias": "alias/aws/s3", "KeyMetadata": {"KeyId": "1111bbbb-2222-3333-4444-555566667777", "KeyManager": "AWS", "KeyState": "Enabled", "KeySpec": "SYMMETRIC_DEFAULT"}}
+    ]
+  },
+  "ec2": {
+    "describe_security_groups": {
+      "SecurityGroups": [
+        {"GroupId": "sg-0web", "GroupName": "web-alb", "VpcId": "vpc-0prod", "IpPermissions": [{"IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "IpRanges": [{"CidrIp": "0.0.0.0/0"}], "Ipv6Ranges": [{"CidrIpv6": "::/0"}]}]},
+        {"GroupId": "sg-0bastion1", "GroupName": "break-glass-bastion", "VpcId": "vpc-0prod", "IpPermissions": [{"IpProtocol": "tcp", "FromPort": 22, "ToPort": 22, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]},
+        {"GroupId": "sg-0db", "GroupName": "postgres", "VpcId": "vpc-0prod", "IpPermissions": [{"IpProtocol": "tcp", "FromPort": 5432, "ToPort": 5432, "IpRanges": [{"CidrIp": "10.20.0.0/16"}]}]}
+      ]
+    }
+  },
+  "rds": {
+    "describe_db_instances": {
+      "DBInstances": [
+        {"DBInstanceIdentifier": "acme-prod-db", "Engine": "postgres", "StorageEncrypted": true, "PubliclyAccessible": false, "BackupRetentionPeriod": 14, "MultiAZ": true, "DeletionProtection": true}
+      ]
+    }
+  }
+}

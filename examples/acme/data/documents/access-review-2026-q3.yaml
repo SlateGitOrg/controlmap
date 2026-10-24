@@ -1,0 +1,8 @@
+kind: access_review
+title: Q3 2026 production access review
+performed_on: 2026-07-15
+approved_by: VP Engineering
+approved_on: 2026-07-18
+summary: 41 production accounts reviewed; 3 revoked, 1 role downgraded.
+attachments: [files/access-review-2026-q3.csv]
+recorded_at: 2026-07-18T15:30:00Z

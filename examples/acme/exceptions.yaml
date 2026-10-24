@@ -1,0 +1,45 @@
+# Risk-acceptance register. Names are roles, not people.
+policy:
+  max_duration_days: 365
+exceptions:
+  - id: EXC-2026-001
+    control: AC-04
+    rule: idp.inactive_accounts
+    resources: [svc-legacy-export@acme.example]
+    reason: Quarterly data export for a legacy customer runs from this service account; replacement is scheduled.
+    compensating_controls: [Account restricted to one IP range, Credentials vaulted and rotated monthly]
+    risk_owner: Head of Data Platform
+    approved_by: CISO
+    approved_on: 2026-06-01
+    expires_on: 2026-11-30
+
+  - id: EXC-2026-002
+    control: NW-01
+    resources: ["s3:acme-public-assets"]
+    reason: Bucket serves public marketing images behind the CDN.
+    compensating_controls: [Bucket holds no customer data (tagged and scanned), Write access limited to the CI role]
+    risk_owner: Head of Infrastructure
+    approved_by: CISO
+    approved_on: 2026-03-01
+    expires_on: 2026-10-20
+
+  - id: EXC-2025-007
+    control: NW-02
+    rule: cloud.admin_ports_restricted
+    resources: ["sg:sg-0bastion*"]
+    reason: Break-glass SSH bastion pending migration to session-manager access.
+    compensating_controls: [Key-only SSH, Session recording]
+    risk_owner: Head of Infrastructure
+    approved_by: CISO
+    approved_on: 2025-09-15
+    expires_on: 2026-09-15
+
+  - id: EXC-2026-003
+    control: CM-01
+    resources: ["acme/legacy-*@*"]
+    reason: Archived legacy repositories are read-only and excluded from branch protection.
+    compensating_controls: [Repositories archived (read-only)]
+    risk_owner: VP Engineering
+    approved_by: CISO
+    approved_on: 2026-09-01
+    expires_on: 2027-03-01

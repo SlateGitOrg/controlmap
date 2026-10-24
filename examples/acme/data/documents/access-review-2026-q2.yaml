@@ -1,0 +1,7 @@
+kind: access_review
+title: Q2 2026 production access review
+performed_on: 2026-04-14
+approved_by: VP Engineering
+approved_on: 2026-04-16
+summary: 38 production accounts reviewed; 2 revoked.
+recorded_at: 2026-04-16T12:00:00Z

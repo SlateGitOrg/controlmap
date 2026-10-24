@@ -1,0 +1,12 @@
+Okta ID,Username,Status,MFA Factors,Last Login,Created,Groups,User Type
+00u1a,alice.admin@acme.example,ACTIVE,Okta Verify;WebAuthn,2026-09-29T16:02:11Z,2021-03-01,Engineering;Okta Admins,human
+00u1b,bao@acme.example,ACTIVE,Okta Verify,2026-09-30T08:41:55Z,2022-06-13,Engineering,human
+00u1c,carmen@acme.example,ACTIVE,WebAuthn,2026-09-28T12:00:03Z,2023-01-09,Finance,human
+00u1d,dev.k@acme.example,ACTIVE,SMS,2026-09-30T07:15:40Z,2024-04-02,Sales,human
+00u1e,eli@acme.example,ACTIVE,Okta Verify,2026-09-25T10:20:00Z,2022-02-01,Engineering,human
+00u1f,farah@acme.example,DEPROVISIONED,Okta Verify,2026-07-31T17:59:00Z,2020-05-04,Support,human
+00u1g,gus@acme.example,ACTIVE,Okta Verify,,2026-09-22,Engineering,human
+00u1h,hana@acme.example,ACTIVE,WebAuthn;Okta Verify,2026-09-30T09:12:00Z,2021-08-16,Security;Security Admins,human
+00u1i,ivan@acme.example,SUSPENDED,Okta Verify,2026-06-02T09:00:00Z,2023-05-15,Support,human
+00u1j,svc-legacy-export@acme.example,ACTIVE,,2026-05-02T03:00:00Z,2022-11-01,Integrations,service
+00u1k,svc-ci@acme.example,ACTIVE,,2026-09-30T23:10:00Z,2023-02-20,Integrations,service

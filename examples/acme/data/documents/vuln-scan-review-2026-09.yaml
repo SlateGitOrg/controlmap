@@ -1,0 +1,7 @@
+kind: vuln_scan_review
+title: September 2026 vulnerability scan review
+performed_on: 2026-09-10
+approved_by: Head of Security
+approved_on: 2026-09-11
+summary: 0 critical, 2 high (both remediated within SLA), 11 medium tracked.
+recorded_at: 2026-09-11T08:00:00Z

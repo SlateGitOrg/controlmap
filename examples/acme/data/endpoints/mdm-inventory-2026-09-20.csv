@@ -1,0 +1,8 @@
+device_id,hostname,serial,owner_email,platform,os_version,disk_encrypted,edr_agent,edr_last_seen,screen_lock_minutes,last_checkin
+D-1001,alice-mbp,C02FAKE0001,alice.admin@acme.example,macOS,15.0.1 (24A348),yes,Falcon 7.18,2026-09-20,5,2026-09-20
+D-1002,bao-mbp,C02FAKE0002,bao@acme.example,macOS,14.6.1,yes,Falcon 7.18,2026-09-19,10,2026-09-19
+D-1003,carmen-xps,FAKESVC0003,carmen@acme.example,Windows,10.0.22631.4169,yes,Falcon 7.18,2026-09-20,15,2026-09-20
+D-1004,devk-mbp,C02FAKE0004,dev.k@acme.example,macOS,14.4,yes,Falcon 7.17,2026-08-30,5,2026-09-18
+D-1005,eli-mbp,C02FAKE0005,eli@acme.example,macOS,14.5,yes,Falcon 7.17,2026-09-11,5,2026-09-11
+D-1006,hana-thinkpad,FAKEPF0006,hana@acme.example,Linux,24.04,yes,Falcon 7.18,2026-09-20,10,2026-09-20
+D-1007,gus-mbp,C02FAKE0007,gus@acme.example,macOS,15.0,yes,Falcon 7.18,2026-09-20,5,2026-09-20

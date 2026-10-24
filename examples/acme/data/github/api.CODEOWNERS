@@ -1,0 +1,5 @@
+# Default owners for everything in the repo
+*                       @acme/backend
+/.github/               @acme/platform
+/migrations/            @acme/backend @acme/dba
+*.tf                    @acme/platform

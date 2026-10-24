@@ -1,0 +1,238 @@
+# Acme's control library. Mappings to SOC 2 TSC and ISO/IEC 27001:2022 Annex A are this
+# project's own judgement for a fictional company, not an official AICPA or ISO mapping.
+version: 1
+scope:
+  tsc_categories: [security, availability, confidentiality]
+defaults:
+  freshness_days: 35       # automated evidence older than this is STALE
+
+controls:
+  # ---------------------------------------------------------------- access control
+  - id: AC-01
+    title: MFA for workforce identities
+    description: Every active workforce account in the IdP is enrolled in phishing-resistant or app-based MFA; SMS does not count.
+    owner: IT
+    tsc: [CC6.1]
+    iso27001: ["5.17", "8.5"]
+    rules:
+      - rule: idp.mfa_enforced
+        params: {disallowed_factors: [SMS, Voice Call]}
+
+  - id: AC-02
+    title: Privileged access is limited and protected
+    description: IdP administrators are few, human and MFA-protected; the cloud root account has MFA and no access keys.
+    owner: Security
+    tsc: [CC6.1, CC6.3]
+    iso27001: ["8.2", "5.15"]
+    rules:
+      - rule: idp.admin_accounts_limited
+        params: {max_admins: 3}
+      - rule: cloud.root_account_protected
+
+  - id: AC-03
+    title: Timely removal of leaver access
+    description: IdP accounts of terminated personnel are disabled within one business day, and no active account lacks an HR record.
+    owner: IT
+    tsc: [CC6.2, CC6.3]
+    iso27001: ["5.18", "6.5"]
+    rules:
+      - rule: idp.leavers_deprovisioned
+        params: {sla_days: 1}
+
+  - id: AC-04
+    title: Dormant accounts are disabled
+    description: Accounts without a sign-in for 90 days are disabled unless an approved exception exists.
+    owner: IT
+    tsc: [CC6.2]
+    iso27001: ["5.18"]
+    rules:
+      - rule: idp.inactive_accounts
+        params: {max_days_since_login: 90}
+
+  - id: AC-05
+    title: Quarterly user access review
+    description: Production access is reviewed each quarter and the review is signed off.
+    owner: Security
+    tsc: [CC6.2, CC6.3]
+    iso27001: ["5.18"]
+    freshness_days: 400    # the rule itself enforces the 100-day review cadence
+    rules:
+      - rule: manual.document_current
+        params: {doc_kind: access_review, max_age_days: 100}
+
+  - id: AC-06
+    title: Cloud console password policy
+    description: Local cloud-console passwords are at least 14 characters and the last 12 cannot be reused.
+    owner: Infrastructure
+    tsc: [CC6.1]
+    iso27001: ["5.17"]
+    rules:
+      - rule: cloud.password_policy
+        params: {min_length: 14, min_reuse_prevention: 12}
+
+  # ---------------------------------------------------------------- change management
+  - id: CM-01
+    title: Peer-reviewed changes to production code
+    description: Default branches require pull requests with at least one approval, stale approvals are dismissed, admins are bound by the rules and history cannot be rewritten.
+    owner: Engineering
+    tsc: [CC8.1]
+    iso27001: ["8.32", "8.4"]
+    rules:
+      - rule: github.branch_protection
+        params: {min_approvals: 1}
+      - rule: github.no_history_rewrite
+
+  - id: CM-02
+    title: Code ownership is defined
+    description: Every repository has a valid CODEOWNERS file with a catch-all rule, and deployment workflows have named owners.
+    owner: Engineering
+    tsc: [CC8.1, CC5.2]
+    iso27001: ["8.4", "5.3"]
+    rules:
+      - rule: github.codeowners_coverage
+        params: {required_paths: [.github/workflows/deploy.yml]}
+
+  # ---------------------------------------------------------------- cloud & data
+  - id: CR-01
+    title: Encryption of data at rest
+    description: Object storage, databases and customer-managed keys follow the encryption standard.
+    owner: Infrastructure
+    tsc: [CC6.1, C1.1]
+    iso27001: ["8.24"]
+    rules:
+      - rule: cloud.storage_encrypted
+      - rule: cloud.kms_rotation
+
+  - id: NW-01
+    title: No public object storage
+    description: All buckets block public ACLs and policies, except approved public-content buckets.
+    owner: Infrastructure
+    tsc: [CC6.6, C1.1]
+    iso27001: ["8.3", "8.12"]
+    rules:
+      - rule: cloud.storage_public_access_blocked
+
+  - id: NW-02
+    title: Administrative ports are not internet-facing
+    description: No security group allows SSH, RDP or all traffic from the internet.
+    owner: Infrastructure
+    tsc: [CC6.6]
+    iso27001: ["8.20", "8.22"]
+    rules:
+      - rule: cloud.admin_ports_restricted
+
+  - id: LM-01
+    title: Cloud audit logging
+    description: A multi-region audit trail with log-file validation is always logging.
+    owner: Security
+    tsc: [CC7.2, CC4.1]
+    iso27001: ["8.15", "8.16"]
+    rules:
+      - rule: cloud.audit_logging
+
+  - id: BC-01
+    title: Backups and disaster-recovery testing
+    description: Production databases keep 14 days of automated backups and a restore test is performed yearly.
+    owner: Infrastructure
+    tsc: [A1.2, A1.3]
+    iso27001: ["8.13", "5.30"]
+    rules:
+      - rule: cloud.database_hardening
+        params: {min_backup_retention_days: 14}
+      - rule: manual.document_current
+        params: {doc_kind: dr_test, max_age_days: 365}
+        freshness_days: 400
+
+  # ---------------------------------------------------------------- endpoints
+  - id: EP-01
+    title: Laptop disk encryption
+    description: Every managed laptop has full-disk encryption; the inventory is re-exported weekly.
+    owner: IT
+    tsc: [CC6.1, CC6.7]
+    iso27001: ["8.1", "8.24"]
+    freshness_days: 7
+    rules:
+      - rule: endpoint.disk_encryption
+
+  - id: EP-02
+    title: Endpoint detection and response coverage
+    description: Every laptop runs the EDR agent and it reported within the last 14 days.
+    owner: Security
+    tsc: [CC6.8, CC7.1]
+    iso27001: ["8.7"]
+    rules:
+      - rule: endpoint.edr_coverage
+        params: {max_days_since_seen: 14}
+
+  - id: EP-03
+    title: Endpoint hardening baseline
+    description: Laptops run a supported OS version and lock after at most 15 idle minutes.
+    owner: IT
+    tsc: [CC6.8, CC7.1]
+    iso27001: ["8.1", "8.8"]
+    rules:
+      - rule: endpoint.os_supported
+        params: {minimum_versions: {macOS: "14.0", Windows: "10.0.19045", Linux: "22.04"}}
+      - rule: endpoint.screen_lock
+
+  - id: EP-04
+    title: Asset inventory reconciles with HR
+    description: Devices belong to current staff, every active employee has a managed device and devices of leavers are recovered.
+    owner: IT
+    tsc: [CC6.1, CC6.5]
+    iso27001: ["5.9", "5.11"]
+    rules:
+      - rule: endpoint.inventory_reconciled
+
+  # ---------------------------------------------------------------- people & governance
+  - id: HR-01
+    title: Security awareness training
+    description: Active staff complete security training annually; new hires within 30 days.
+    owner: People
+    tsc: [CC1.4, CC2.2]
+    iso27001: ["6.3"]
+    rules:
+      - rule: hris.security_training
+
+  - id: GV-01
+    title: Information security policy reviewed annually
+    description: The policy set is reviewed and approved by leadership every year.
+    owner: Security
+    tsc: [CC5.3, CC2.2]
+    iso27001: ["5.1"]
+    freshness_days: 400
+    rules:
+      - rule: manual.document_current
+        params: {doc_kind: policy_review, max_age_days: 365}
+
+  - id: IR-01
+    title: Incident response plan is tested
+    description: The incident response plan is exercised in a tabletop at least yearly.
+    owner: Security
+    tsc: [CC7.3, CC7.4, CC7.5]
+    iso27001: ["5.24", "5.26"]
+    freshness_days: 400
+    rules:
+      - rule: manual.document_current
+        params: {doc_kind: ir_tabletop, max_age_days: 365}
+
+  - id: RA-01
+    title: Annual risk assessment
+    description: A formal risk assessment is performed and approved every year.
+    owner: Security
+    tsc: [CC3.1, CC3.2]
+    freshness_days: 400    # ISO 27001 places risk assessment in clause 6/8, not Annex A
+    rules:
+      - rule: manual.document_current
+        params: {doc_kind: risk_assessment, max_age_days: 365}
+
+  - id: VM-01
+    title: Monthly vulnerability scan review
+    description: External and internal scan results are reviewed monthly and remediation is tracked.
+    owner: Security
+    tsc: [CC7.1]
+    iso27001: ["8.8"]
+    freshness_days: 400
+    rules:
+      - rule: manual.document_current
+        params: {doc_kind: vuln_scan_review, max_age_days: 35}
