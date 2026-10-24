@@ -19,7 +19,6 @@ import shutil
 import tempfile
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
 from .canonical import canonical_json, sha256_file
@@ -108,24 +107,6 @@ class EvidenceStore:
         if not self._objects.is_dir():
             return 0
         return sum(1 for _ in self._objects.glob("*/*.json"))
-
-    def latest(self, cutoff: datetime) -> list[Evidence]:
-        """Newest record per (kind, subject) collected at or before ``cutoff``.
-
-        Ties on ``collected_at`` are broken by digest so the choice is deterministic.
-        """
-        best: dict[tuple[str, str], Evidence] = {}
-        for evidence in self:
-            if evidence.collected_at > cutoff:
-                continue
-            key = (evidence.kind, evidence.subject)
-            current = best.get(key)
-            if current is None or (evidence.collected_at, evidence.digest) > (
-                current.collected_at,
-                current.digest,
-            ):
-                best[key] = evidence
-        return sorted(best.values(), key=lambda e: (e.kind, e.subject))
 
 
 def _atomic_write(path: Path, data: bytes) -> None:
