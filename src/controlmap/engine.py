@@ -3,10 +3,16 @@
 For an evaluation date ``as_of`` the engine:
 
 1. selects, for every (kind, subject), the newest evidence collected on or before the end of
-   ``as_of`` (later evidence is invisible, so past evaluations are reproducible);
+   ``as_of`` (later evidence is invisible, so past evaluations are reproducible), leaving out
+   subjects their source has stopped reporting (see :func:`select_evidence`);
 2. runs every rule of every control on the evidence kinds it requires;
 3. classifies each rule outcome, applying the exception register to its findings;
 4. rolls rule statuses up to the control (worst wins).
+
+Freshness is judged only on the records a rule relied on. A rule that reads one record out of
+several (for example the latest of many quarterly access reviews) says so through
+:attr:`RuleOutcome.used`, so superseded history kept next to current evidence never makes a
+control STALE.
 
 Rule status decision table (first match wins):
 
@@ -17,7 +23,7 @@ rule raised an error while reading evidence         ERROR
 a required evidence kind has no record             NO_EVIDENCE
 at least one finding not covered by an exception   FAIL
 the rule checked zero items                        NO_EVIDENCE
-any evidence used is older than freshness window   STALE
+any evidence relied on is older than the window   STALE
 all findings covered by active exceptions          EXCEPTED
 otherwise                                          PASS
 =================================================  ===========
@@ -46,15 +52,58 @@ from .model import (
     Status,
 )
 from .rules import RuleContext
+from .store import CollectionRun
 
 log = logging.getLogger(__name__)
 
 
-def select_evidence(records: Iterable[Evidence], as_of: date) -> dict[str, list[Evidence]]:
-    """Group records by kind, keeping the newest per subject collected on/before ``as_of``."""
+def latest_runs(runs: Iterable[CollectionRun], as_of: date) -> dict[str, CollectionRun]:
+    """The most recent run per source whose evidence was all collected on/before ``as_of``."""
+    chosen: dict[str, CollectionRun] = {}
+    for run in runs:
+        if run.collected_through.date() > as_of:
+            continue
+        current = chosen.get(run.source)
+        if current is None or (run.recorded_at, run.digest) > (
+            current.recorded_at,
+            current.digest,
+        ):
+            chosen[run.source] = run
+    return chosen
+
+
+def is_retired(record: Evidence, latest: dict[str, CollectionRun]) -> bool:
+    """True when the source's latest run no longer reports this record's subject.
+
+    Only records not newer than that run can be retired: a record collected after it belongs
+    to a run that does not apply yet at this evaluation date. Sources without recorded runs
+    (stores written by older versions, hand-built record lists) are never retired.
+    """
+    run = latest.get(record.source)
+    return (
+        run is not None
+        and (record.kind, record.subject) not in run.members
+        and record.collected_at <= run.collected_through
+    )
+
+
+def select_evidence(
+    records: Iterable[Evidence], as_of: date, runs: Iterable[CollectionRun] = ()
+) -> dict[str, list[Evidence]]:
+    """Group records by kind, keeping the newest per subject collected on/before ``as_of``.
+
+    With ``runs``, a subject that the latest applicable run of its source no longer reported
+    (a repository removed from the config, a deleted document descriptor) is left out instead
+    of being evaluated on its last record forever.
+    """
+    latest = latest_runs(runs, as_of)
     best: dict[tuple[str, str], Evidence] = {}
+    retired: set[tuple[str, str, str]] = set()
     for record in records:
         if record.collected_at.date() > as_of:
+            continue
+        if is_retired(record, latest):
+            retired.add((record.source, record.kind, record.subject))
             continue
         key = (record.kind, record.subject)
         current = best.get(key)
@@ -63,6 +112,8 @@ def select_evidence(records: Iterable[Evidence], as_of: date) -> dict[str, list[
             current.digest,
         ):
             best[key] = record
+    for source, kind, subject in sorted(retired):
+        log.info("%s no longer reports %s %s; its evidence is not evaluated", source, kind, subject)
     grouped: dict[str, list[Evidence]] = defaultdict(list)
     for (kind, _), record in sorted(best.items()):
         grouped[kind].append(record)
@@ -75,8 +126,10 @@ def evaluate(
     register: ExceptionRegister,
     as_of: date,
     company: str,
+    *,
+    runs: Iterable[CollectionRun] = (),
 ) -> EvaluationRun:
-    selected = select_evidence(records, as_of)
+    selected = select_evidence(records, as_of, runs)
     tracker = register.tracker(as_of)
     results = [_evaluate_control(control, selected, as_of, tracker) for control in library.controls]
     run = EvaluationRun(company, as_of, tuple(results), tracker.report())
@@ -178,6 +231,9 @@ def _evaluate_rule(
         log.warning("%s/%s raised %s", control.id, spec.name, exc)
         return result(Status.ERROR, notes=[f"rule error: {type(exc).__name__}: {exc}"])
 
+    if outcome.used is not None:
+        used = {record.digest for record in outcome.used}
+        refs = [ref for ref in refs if ref.digest in used]
     findings = tracker.apply(control.id, spec.name, outcome.findings)
     notes = list(outcome.notes)
     stale = [ref for ref in refs if ref.stale]

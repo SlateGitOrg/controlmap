@@ -51,4 +51,4 @@ def document_current(ctx: RuleContext) -> RuleOutcome:
     ):
         findings.append(Finding(latest.subject, "document has no recorded approval"))
     notes = [f"latest: {latest.data['title']} (performed {performed.isoformat()})"]
-    return RuleOutcome(1, findings, notes)
+    return RuleOutcome(1, findings, notes, used=[latest])

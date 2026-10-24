@@ -59,11 +59,17 @@ class Param:
 
 @dataclass(frozen=True)
 class RuleOutcome:
-    """What a rule observed: population size, deviations and free-text notes."""
+    """What a rule observed: population size, deviations and free-text notes.
+
+    ``used`` lists the evidence records the verdict rests on when that is a subset of what the
+    rule was given (e.g. only the latest of several documents). The engine judges freshness and
+    cites evidence only over these. ``None`` means every record the rule was given.
+    """
 
     checked: int
     findings: list[Finding] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    used: list[Evidence] | None = None
 
 
 class RuleContext:

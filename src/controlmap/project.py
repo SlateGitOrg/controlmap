@@ -31,7 +31,7 @@ from .exceptions import ExceptionRegister, load_exceptions
 from .library import Library, load_library
 from .model import EvaluationRun, Evidence
 from .settings import Settings, load_yaml
-from .store import EvidenceStore
+from .store import CollectionRun, EvidenceStore
 from .timeutil import Clock, utc_now
 
 log = logging.getLogger(__name__)
@@ -109,7 +109,8 @@ def collect(
     """Run the configured collectors and store their evidence.
 
     A failing collector is reported and the others continue (unless ``fail_fast``), so one
-    broken export does not block refreshing the rest of the evidence.
+    broken export does not block refreshing the rest of the evidence. Each successful run is
+    recorded as a :class:`CollectionRun` so subjects a source stops reporting are retired.
     """
     context = CollectorContext(
         base_dir=config.base_dir,
@@ -131,6 +132,7 @@ def collect(
         try:
             records = collector.collect()
             results = store.put_many(records)
+            store.put_run(CollectionRun.from_records(collector.name, records, clock()))
         except ControlmapError as exc:
             entry.error = str(exc)
             log.error("collector %s failed: %s", collector.name, exc)
@@ -164,5 +166,6 @@ def evaluate_project(config: ProjectConfig, as_of: date | None = None) -> Evalua
         raise ControlmapError(
             f"the evidence store {config.store_path} is empty; run 'controlmap collect' first"
         )
-    run = evaluate(library, records, register, as_of, config.company)
+    runs = config.store().runs()
+    run = evaluate(library, records, register, as_of, config.company, runs=runs)
     return Evaluation(config, library, register, run, records)

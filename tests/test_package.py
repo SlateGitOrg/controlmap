@@ -57,13 +57,15 @@ def test_package_contents_and_verification(evaluation: Evaluation, tmp_path: Pat
     assert any(
         n.startswith("attachments/") and n.endswith("access-review-2026-q3.csv") for n in names
     )
-    assert sum(n.startswith("evidence/") for n in names) == 21
+    # 21 records are stored; the superseded Q2 access review is not relied on by any rule.
+    assert sum(n.startswith("evidence/") for n in names) == 20
+    assert not any("access-review-2026-q2" in n for n in names)
     manifest = json.loads((out / "manifest.json").read_text())
     assert manifest["summary"]["FAIL"] == 7
     assert "supports a SOC 2 examination; it is not one" in (out / "README.md").read_text()
     report = verify_package(out)
     assert report.ok, report.problems
-    assert report.evidence_records == 21
+    assert report.evidence_records == 20
     assert report.signed is False
 
 
