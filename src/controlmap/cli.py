@@ -268,7 +268,7 @@ def _write_verify(report: VerifyReport, out: TextIO) -> None:
         out.write("signature: none (integrity only, origin not proven)\n")
     for problem in report.problems:
         out.write(f"FAIL: {problem}\n")
-    out.write("VERIFIED\n" if report.ok else f"NOT VERIFIED ({len(report.problems)} problems)\n")
+    out.write("VERIFIED\n" if report.ok else f"NOT VERIFIED ({len(report.problems)} problem(s))\n")
 
 
 def cmd_verify(args: argparse.Namespace, out: TextIO) -> int:
