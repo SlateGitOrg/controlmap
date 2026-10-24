@@ -60,11 +60,18 @@ rule.
 ```
 <store>/objects/<aa>/<digest>.json      canonical JSON, one record per file
 <store>/attachments/<aa>/<sha256>        raw attachment bytes
+<store>/runs/<digest>.json               one manifest per successful collector run
 ```
 
 `put` is idempotent and writes atomically (temp file plus rename). Attachments are re-hashed
 before they are copied, so a file that changed between collection and storage is rejected.
 Loading a record re-derives its digest and checks it against the file name.
+
+After each collector succeeds, `collect` writes a run manifest: the source name, the wall-clock
+time of the run, the newest `collected_at` among its records (`collected_through`) and the
+`(kind, subject)` pairs it reported. Run manifests are content-addressed and re-hashed on load
+like records. They exist so the engine can tell "this repository is no longer configured" from
+"this repository has not changed".
 
 ## 4. Library and rules (`library.py`, `rules/`, `frameworks.py`)
 
@@ -77,9 +84,12 @@ The library loader validates:
   is never accepted as an int). Defaults are filled in;
 - freshness windows are at least 1 day, and resolve per rule → per control → library default.
 
-A rule is a pure function `RuleContext -> RuleOutcome(checked, findings, notes)`. Its
+A rule is a pure function `RuleContext -> RuleOutcome(checked, findings, notes, used)`. Its
 `requires` is either a tuple of evidence kinds or a function of its parameters. For example,
-`manual.document_current` requires `manual.<doc_kind>`.
+`manual.document_current` requires `manual.<doc_kind>`. `used` is optional: a rule that bases
+its verdict on a subset of the records it was given (the document rule reads only the latest
+document of its kind) lists that subset, and the engine judges freshness and cites evidence only
+over it. `None` means every record.
 
 ## 5. Engine (`engine.py`)
 
@@ -87,6 +97,14 @@ A rule is a pure function `RuleContext -> RuleOutcome(checked, findings, notes)`
 `(kind, subject)`, the newest record whose `collected_at` UTC date is on or before `as_of`.
 Ties are broken by digest, so the choice is deterministic. One pass over the records costs
 O(N), plus O(K log K) to sort the K selected records.
+
+**Retired subjects.** For each source, the engine picks the latest run (by run time) whose
+`collected_through` date is on or before `as_of`. A record of that source whose `(kind, subject)`
+is missing from that run, and which is not newer than the run's `collected_through`, is left
+out: the source has stopped reporting it (a repository dropped from the config, a deleted
+document descriptor). Records newer than the chosen run belong to a run that does not apply yet
+and are kept. Sources without run manifests (stores written by earlier versions) are never
+retired. Choosing runs is O(runs); the membership test is O(1) per record.
 
 **Rule status decision table** (first match wins):
 
@@ -96,7 +114,7 @@ O(N), plus O(K log K) to sort the K selected records.
 | a required evidence kind has no record | `NO_EVIDENCE` |
 | at least one finding not covered by an active exception | `FAIL` |
 | the rule tested zero items | `NO_EVIDENCE` |
-| some evidence used is older than the freshness window | `STALE` |
+| some evidence the rule relied on (`used`) is older than the freshness window | `STALE` |
 | findings exist and all are excepted | `EXCEPTED` |
 | otherwise | `PASS` |
 
@@ -138,6 +156,8 @@ as gaps instead of being hidden.
 
 The builder assembles every file in memory (rendered pages, `results.json`, `crosswalk.*`,
 `exceptions.*`, the library source, and the evidence records referenced by any result). It
+copies each referenced attachment from the store, re-hashes the copy and aborts with
+`PackageError` if it does not match the digest in its evidence record. It
 writes them into a sibling staging directory and renames that into place, so a failed build
 leaves nothing behind. Then:
 
@@ -156,7 +176,11 @@ or controlmap's configuration:
 2. each listed file exists, is not a symlink, and has the recorded size and SHA-256;
 3. no unlisted file or symlink is present;
 4. `MANIFEST.sha256` equals the manifest's digests plus the manifest's own digest;
-5. each `evidence/<digest>.json` parses as an `Evidence` whose recomputed digest equals its name;
+5. each `evidence/<digest>.json` parses as an `Evidence` whose recomputed digest equals its name,
+   and every attachment the record names is present as `attachments/<sha256>-<name>` and hashes
+   to exactly that `sha256`. Attachment files no record names are reported. Because the expected
+   digest comes from the hashed evidence record, not from the manifest, a file swapped before
+   packaging fails even when the manifest is consistent and signed;
 6. every evidence digest referenced in `results.json` is in the package, and the manifest summary
    equals the results' counts;
 7. the signature verifies, and if `--public-key` is given, the signer is that key.

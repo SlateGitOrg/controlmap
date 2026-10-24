@@ -33,12 +33,12 @@ can check with nothing but `shasum`.
 | Evidence store | Content-addressed and append-only. Each record is canonical JSON named by its SHA-256, and attachments are hashed and copied. |
 | Control library | YAML controls → rules + params, mapped to TSC criteria and Annex A. Everything is validated at load time against bundled catalogs (61 TSC criteria ids, 93 Annex A controls). |
 | Rules | 22 built-in rules (MFA, leavers, dormant accounts, branch protection, CODEOWNERS, encryption, public buckets, admin ports, audit trails, KMS rotation, EDR, disk encryption, OS baseline, HR↔IdP↔MDM reconciliation, document recency, and others). Rules also load from the `controlmap.rules` entry-point group. |
-| Freshness windows | Per library, per control or per rule. Evidence older than its window turns a passing rule `STALE`. |
+| Freshness windows | Per library, per control or per rule. Evidence a rule relied on that is older than its window turns a passing rule `STALE`; superseded history (last year's access review) does not. |
 | Point-in-time evaluation | `--as-of DATE` uses only evidence collected on or before that date, so past results can be reproduced. |
 | Exceptions | Approved, time-boxed and matched by resource pattern. Expired or pending exceptions never apply, and matches that were blocked are reported. The register flags exceptions that are expiring soon, unused, or longer than the maximum duration. |
 | Crosswalk | TSC ↔ Annex A, derived from the controls that test both, with honest coverage gaps. |
 | Evidence package | Per-control Markdown + HTML, the evidence records relied on, `manifest.json` and `MANIFEST.sha256` (works with `shasum -c`), an optional Ed25519 signature, and a byte-reproducible `.tar.gz`. |
-| Verification | `controlmap verify` checks hashes, unlisted files, symlinks, the checksum list, per-record digests, results→evidence references, the summary and the signature. It reports every problem it finds. |
+| Verification | `controlmap verify` checks hashes, unlisted files, symlinks, the checksum list, per-record digests, each attachment against the digest its evidence record names, results→evidence references, the summary and the signature. It reports every problem it finds. |
 
 ## Architecture
 
@@ -171,13 +171,13 @@ PASS 11 | EXCEPTED 2 | STALE 1 | NO_EVIDENCE 1 | FAIL 7
 Automated checks over collected evidence; this supports an audit, not replaces it.
 
 $ controlmap -c acme/controlmap.yaml package --out out/acme-2026-10-01 --archive out/acme-2026-10-01.tar.gz --sign-key out/signing.pem --generated-at 2026-10-01T12:00:00Z
-package written to out/acme-2026-10-01 (79 files)
-manifest sha256: 58ec4e3ef170b20e3d88e5ec0b5e9b1577f42ae0e36380c03c10c5585da7b867
+package written to out/acme-2026-10-01 (78 files)
+manifest sha256: ac8cda690be44f79065d79190fe0654c1d5734d76e4234c4ece175b3ee81faa3
 signed: yes
 
 $ controlmap verify out/acme-2026-10-01.tar.gz --public-key out/signing.pub
-files checked: 76, evidence records: 21
-signature: valid, signer fingerprint c42671276721651d15a0630ef71a872429cbf1d1ecf0563ef0a0bc5a41c59abb
+files checked: 75, evidence records: 20
+signature: valid, signer fingerprint 46a7f609c7d5da1f7dac311f9cc68c0228d0f2b5b7dea8aa5f8a96d802d20c75
 signer matches the trusted public key
 VERIFIED
 
@@ -243,8 +243,8 @@ show scaling. They do not predict any real company's runtime.
 | What | Command | Result (this commit) |
 |---|---|---|
 | Full gate | `make check` | ruff format + ruff lint (0 warnings) + `mypy --strict` + pytest |
-| Tests | `uv run --frozen pytest` | 237 passed |
-| Coverage | `make cov` (`--cov-fail-under=90`, branch coverage) | 97.55% of `controlmap` |
+| Tests | `uv run --frozen pytest` | 249 passed |
+| Coverage | `make cov` (`--cov-fail-under=90`, branch coverage) | 97.70% of `controlmap` |
 
 The suite includes at least one passing case and one failing case for every built-in rule,
 property-based tests with Hypothesis (canonical JSON round-trips, CODEOWNERS glob semantics,
@@ -272,6 +272,10 @@ against the mock server.
 - **Point in time, not a period.** SOC 2 Type II tests operating effectiveness over a period.
   controlmap evaluates one date per run. Rerunning it on a schedule and keeping the packages is
   up to the operator. There is no built-in sampling or period roll-up.
+- **Dropping a source subject drops its findings.** When a collector stops reporting a subject
+  (a repository removed from the config), later evaluations no longer test it. That is the
+  point, but it also means removing a failing repository makes its finding disappear. It is
+  logged, and visible in the config history, but not yet listed in the package.
 - **Catalog text is abbreviated.** TSC labels are short paraphrases written for this project.
   Annex A entries carry only the control headings. The authoritative criteria and control text
   are in the AICPA and ISO publications.
