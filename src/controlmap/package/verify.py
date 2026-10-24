@@ -7,7 +7,10 @@ It checks, in order:
 2. every listed file exists with the recorded size and SHA-256;
 3. no unlisted file is present (an attacker cannot smuggle in extra "evidence");
 4. ``MANIFEST.sha256`` agrees with the manifest (so ``shasum -c`` is an equivalent check);
-5. every ``evidence/<digest>.json`` record re-hashes to its own name;
+5. every ``evidence/<digest>.json`` record re-hashes to its own name, and every attachment it
+   names is packaged as ``attachments/<sha256>-<name>`` with exactly that SHA-256 (so a file
+   swapped in the store before packaging cannot pass as the attachment the record hashed);
+   attachments no record names are reported too;
 6. every evidence digest referenced from ``results.json`` is present, and the manifest's
    status summary matches the results;
 7. ``signature.json``, when present, verifies over ``manifest.json``; when a trusted public
@@ -34,7 +37,7 @@ from ..errors import EvidenceError, PackageError
 from ..model import Evidence
 from . import signing
 from .archive import extract_archive
-from .builder import CHECKSUMS, FORMAT, INTEGRITY_FILES, MANIFEST, SIGNATURE
+from .builder import CHECKSUMS, FORMAT, INTEGRITY_FILES, MANIFEST, SIGNATURE, attachment_member
 
 log = logging.getLogger(__name__)
 
@@ -206,6 +209,7 @@ def _check_checksums(root: Path, listed: Mapping[str, str], report: VerifyReport
 
 
 def _check_evidence(root: Path, listed: Mapping[str, str], report: VerifyReport) -> None:
+    named: set[str] = set()
     for name in sorted(listed):
         if not (name.startswith("evidence/") and name.endswith(".json")):
             continue
@@ -220,6 +224,37 @@ def _check_evidence(root: Path, listed: Mapping[str, str], report: VerifyReport)
             continue
         if PurePosixPath(name).stem != record.digest:
             report.problems.append(f"{name}: record digest {record.digest[:16]}... differs")
+        for attachment in record.attachments:
+            member = attachment_member(attachment.sha256, attachment.name)
+            named.add(member)
+            _check_attachment(root, name, member, attachment.sha256, listed, report)
+    for name in sorted(listed):
+        if name.startswith("attachments/") and name not in named:
+            report.problems.append(f"{name}: attachment not named by any evidence record")
+
+
+def _check_attachment(  # noqa: PLR0917 - private helper, all arguments required
+    root: Path,
+    record_name: str,
+    member: str,
+    expected: str,
+    listed: Mapping[str, str],
+    report: VerifyReport,
+) -> None:
+    """The attachment a record hashed must be present with exactly that digest."""
+    if not _safe_relative(member) or len(PurePosixPath(member).parts) != 2:
+        report.problems.append(f"{record_name}: unsafe attachment name {member!r}")
+        return
+    path = root / member
+    if member not in listed or not path.is_file() or path.is_symlink():
+        report.problems.append(f"{record_name}: attachment {member} is not in the package")
+        return
+    digest, _ = sha256_file(path)
+    if digest != expected:
+        report.problems.append(
+            f"{record_name}: attachment {member} hashes to {digest[:16]}..., but the evidence "
+            f"record says {expected[:16]}..."
+        )
 
 
 def _check_results(

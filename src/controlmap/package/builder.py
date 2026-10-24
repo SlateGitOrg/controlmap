@@ -99,13 +99,16 @@ def build_package(
         raise PackageError(f"cannot read library {library_source}: {exc}") from exc
     for record in evidence:
         files[f"evidence/{record.digest}.json"] = pretty_json(record.to_dict()).encode("utf-8")
-    attachment_sources: dict[str, Path] = {}
+    attachment_sources: dict[str, tuple[Path, str]] = {}
     for record in evidence:
         for attachment in record.attachments:
             stored = store.attachment_path(attachment.sha256)
             if not stored.is_file():
                 raise PackageError(f"attachment {attachment.name} ({attachment.sha256}) missing")
-            attachment_sources[f"attachments/{attachment.sha256}-{attachment.name}"] = stored
+            attachment_sources[attachment_member(attachment.sha256, attachment.name)] = (
+                stored,
+                attachment.sha256,
+            )
 
     out_dir.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=".controlmap-pkg-", dir=out_dir.parent))
@@ -114,12 +117,18 @@ def build_package(
         for name, data in sorted(files.items()):
             _write(staging / name, data)
             entries.append({"path": name, "sha256": sha256_bytes(data), "size": len(data)})
-        for name, source in sorted(attachment_sources.items()):
+        for name, (source, expected) in sorted(attachment_sources.items()):
             target = staging / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
             data = target.read_bytes()
-            entries.append({"path": name, "sha256": sha256_bytes(data), "size": len(data)})
+            digest = sha256_bytes(data)
+            if digest != expected:
+                raise PackageError(
+                    f"attachment {name} in the store does not match its evidence record "
+                    f"(expected sha256 {expected}, found {digest}); the store was modified"
+                )
+            entries.append({"path": name, "sha256": digest, "size": len(data)})
         entries.sort(key=lambda e: e["path"])
         manifest = {
             "format": FORMAT,
@@ -155,9 +164,21 @@ def build_package(
     return PackageInfo(out_dir, total, manifest_digest, signing_key is not None, archive_path)
 
 
+def attachment_member(sha256: str, name: str) -> str:
+    """Package path of an attachment: its expected digest is part of the name."""
+    return f"attachments/{sha256}-{name}"
+
+
 def _write(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
 
 
-__all__ = ["DISCLAIMER", "FORMAT", "PackageInfo", "build_package", "canonical_json"]
+__all__ = [
+    "DISCLAIMER",
+    "FORMAT",
+    "PackageInfo",
+    "attachment_member",
+    "build_package",
+    "canonical_json",
+]

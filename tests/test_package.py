@@ -14,11 +14,13 @@ import pytest
 
 from controlmap.canonical import pretty_json, sha256_bytes
 from controlmap.errors import PackageError
+from controlmap.model import Evidence
 from controlmap.package import (
     build_package,
     generate_keypair,
     load_private_key,
     load_public_key,
+    signing,
     verify_package,
 )
 from controlmap.package.archive import extract_archive
@@ -310,3 +312,90 @@ def test_missing_evidence_or_attachments_abort_the_build(
         build(evaluation, tmp_path / "pkg")
     assert not (tmp_path / "pkg").exists()
     assert not list(tmp_path.glob(".controlmap-pkg-*"))  # staging dir cleaned up
+
+
+def _attachment_files(out: Path) -> list[Path]:
+    return sorted((out / "attachments").iterdir())
+
+
+def _set_listing(out: Path, files: dict[str, bytes | None]) -> None:
+    """Add, replace (bytes) or drop (None) files and rewrite manifest + checksums to match."""
+    manifest = json.loads((out / "manifest.json").read_text())
+    entries = {e["path"]: e for e in manifest["files"]}
+    for name, data in files.items():
+        if data is None:
+            (out / name).unlink()
+            entries.pop(name)
+        else:
+            (out / name).parent.mkdir(parents=True, exist_ok=True)
+            (out / name).write_bytes(data)
+            entries[name] = {"path": name, "sha256": sha256_bytes(data), "size": len(data)}
+    manifest["files"] = sorted(entries.values(), key=lambda e: e["path"])
+    (out / "manifest.json").write_bytes(pretty_json(manifest).encode())
+    edit_manifest_consistently(out, "results.json", (out / "results.json").read_bytes())
+
+
+def test_tampered_store_attachment_aborts_the_build(evaluation: Evaluation, tmp_path: Path) -> None:
+    """Bytes swapped in the store after collection must never be packaged as evidence."""
+    stored = sorted((evaluation.config.store_path / "attachments").glob("*/*"))
+    assert stored
+    with stored[0].open("ab") as handle:
+        handle.write(b"forged,row\n")
+    with pytest.raises(PackageError, match="does not match its evidence record"):
+        build(evaluation, tmp_path / "pkg", signing_key=_key(tmp_path))
+    assert not (tmp_path / "pkg").exists()
+    assert not list(tmp_path.glob(".controlmap-pkg-*"))
+
+
+def test_attachment_must_match_the_digest_its_evidence_record_names(
+    package: Path, tmp_path: Path
+) -> None:
+    """A forged attachment with a consistent, validly *signed* manifest is still rejected."""
+    target = _attachment_files(package)[0]
+    name = f"attachments/{target.name}"
+    edit_manifest_consistently(package, name, target.read_bytes() + b"forged,row\n")
+    key = load_private_key(tmp_path / "sign.pem")
+    signature = signing.sign(key, (package / "manifest.json").read_bytes())
+    (package / "signature.json").write_bytes(pretty_json(signature).encode())
+    report = verify_package(package)
+    assert report.signature_valid is True
+    expected = target.name.split("-", 1)[0]
+    assert report.problems == [
+        f"evidence/{_record_naming(package, name)}.json: attachment {name} hashes to "
+        f"{sha256_bytes((package / name).read_bytes())[:16]}..., but the evidence record says "
+        f"{expected[:16]}..."
+    ]
+
+
+def _record_naming(package: Path, member: str) -> str:
+    for path in (package / "evidence").glob("*.json"):
+        record = json.loads(path.read_text())
+        if any(f"attachments/{a['sha256']}-{a['name']}" == member for a in record["attachments"]):
+            return path.stem
+    raise AssertionError(member)
+
+
+def test_missing_extra_and_unsafe_attachments_are_reported(package: Path) -> None:
+    (package / "signature.json").unlink()
+    gone = f"attachments/{_attachment_files(package)[0].name}"
+    owner = _record_naming(package, gone)
+    record = json.loads((package / "evidence" / f"{owner}.json").read_text())
+    record.pop("digest")
+    record["attachments"][0]["name"] = "../../outside.txt"
+    unsafe = Evidence.from_dict(record)
+    _set_listing(
+        package,
+        {
+            gone: None,
+            "attachments/" + "0" * 64 + "-smuggled.txt": b"not evidence\n",
+            f"evidence/{unsafe.digest}.json": pretty_json(unsafe.to_dict()).encode(),
+        },
+    )
+    problems = verify_package(package).problems
+    assert f"evidence/{owner}.json: attachment {gone} is not in the package" in problems
+    assert (
+        "attachments/" + "0" * 64 + "-smuggled.txt: attachment not named by any evidence record"
+    ) in problems
+    assert any(
+        p.startswith(f"evidence/{unsafe.digest}.json: unsafe attachment name") for p in problems
+    )
