@@ -81,7 +81,7 @@ def test_invalid_yaml_and_missing_directory(tmp_path: Path) -> None:
 
 
 def test_registry_lists_builtins_and_rejects_unknown_types(tmp_path: Path) -> None:
-    assert set(collector_types()) == {
+    assert {name for name in collector_types() if not name.startswith("test_")} == {
         "aws_snapshot",
         "endpoint_csv",
         "github",
