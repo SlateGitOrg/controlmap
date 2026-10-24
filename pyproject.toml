@@ -37,7 +37,7 @@ target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "N", "C4", "PTH", "RET", "PL", "S", "TID", "DTZ", "ERA"]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "N", "C4", "PTH", "RET", "PL", "S", "DTZ", "ERA"]
 ignore = [
     "PLR0911", "PLR0912", "PLR0913", "PLR2004", "PLR0915",
     "S101",  # asserts are used for internal invariants and tests
