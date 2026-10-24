@@ -69,6 +69,8 @@ def load_catalogs() -> Catalogs:
     tsc: dict[str, Criterion] = {}
     categories = {str(k): str(v) for k, v in tsc_doc["categories"].items()}
     for entry in tsc_doc["criteria"]:
+        if set(entry) != {"id", "category", "label"}:
+            raise LibraryError(f"bundled TSC catalog entry has unexpected keys: {entry}")
         criterion = Criterion(str(entry["id"]), str(entry["category"]), str(entry["label"]))
         if not _TSC_ID.match(criterion.id) or criterion.category not in categories:
             raise LibraryError(f"bundled TSC catalog has a bad entry: {entry}")
@@ -76,6 +78,8 @@ def load_catalogs() -> Catalogs:
     iso: dict[str, IsoControl] = {}
     themes = {str(k): str(v) for k, v in iso_doc["themes"].items()}
     for entry in iso_doc["controls"]:
+        if set(entry) != {"id", "theme", "title"}:
+            raise LibraryError(f"bundled ISO catalog entry has unexpected keys: {entry}")
         control = IsoControl(str(entry["id"]), str(entry["theme"]), str(entry["title"]))
         if not _ISO_ID.match(control.id) or control.theme not in themes:
             raise LibraryError(f"bundled ISO catalog has a bad entry: {entry}")

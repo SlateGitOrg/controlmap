@@ -7,7 +7,7 @@ control maps to both. Labels are paraphrased topic names, not the official crite
 
 | Criterion | Topic | Controls | Annex A | Status |
 |---|---|---|---|---|
-{% for row in criteria %}| {{ row.id }} | {{ row.label | md }} | {{ row.controls | join(", ") or "—" }} | {{ row.iso27001 | join(", ") or "—" }} | {{ row.status or "NO CONTROL" }} |
+{% for row in criteria %}| {{ row.id }} | {{ row.label | md }} | {{ row.controls | join(", ") or "—" }} | {{ row.iso27001 | annex or "—" }} | {{ row.status or "NO CONTROL" }} |
 {% endfor %}
 ## ISO/IEC 27001:2022 Annex A ({{ coverage.iso_covered }}/{{ coverage.iso_total }} reached)
 

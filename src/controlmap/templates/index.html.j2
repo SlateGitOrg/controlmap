@@ -15,7 +15,7 @@
 <p class="meta">{{ coverage.tsc_covered }} of {{ coverage.tsc_in_scope }} in-scope criteria have at least one automated control. Criteria without one need manual testing.</p>
 <div class="wrap"><table><tr><th>Criterion</th><th>Topic (paraphrased)</th><th>Controls</th><th>ISO 27001:2022</th><th>Status</th></tr>
 {% for row in criteria %}<tr><td>{{ row.id }}</td><td>{{ row.label }}</td><td>{{ row.controls | join(", ") or "—" }}</td>
-<td>{{ row.iso27001 | join(", ") or "—" }}</td><td><span class="badge s-{{ row.status or 'GAP' }}">{{ row.status or "NO CONTROL" }}</span></td></tr>
+<td>{{ row.iso27001 | annex or "—" }}</td><td><span class="badge s-{{ row.status or 'GAP' }}">{{ row.status or "NO CONTROL" }}</span></td></tr>
 {% endfor %}</table></div>
 <h2>Exceptions</h2>
 {% if exceptions %}<div class="wrap"><table><tr><th>Id</th><th>Control</th><th>State</th><th>Expires</th><th>Flags</th></tr>

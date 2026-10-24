@@ -23,6 +23,10 @@ def _md_cell(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ")
 
 
+def _annex(ids: list[str]) -> str:
+    return ", ".join(f"A.{i}" for i in ids)
+
+
 def environment() -> Environment:
     env = Environment(
         loader=PackageLoader("controlmap", "templates"),
@@ -33,6 +37,7 @@ def environment() -> Environment:
         keep_trailing_newline=True,
     )
     env.filters["md"] = _md_cell
+    env.filters["annex"] = _annex
     return env
 
 

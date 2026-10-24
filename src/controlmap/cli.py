@@ -175,7 +175,7 @@ def cmd_collect(args: argparse.Namespace, out: TextIO) -> int:
             ]
         )
     _table(rows, out)
-    out.write(f"{report.total_new} new evidence record(s) stored in {config.store_path.name}/\n")
+    out.write(f"{report.total_new} new evidence record(s) stored in {config.store_path}\n")
     return EXIT_OK if report.ok else EXIT_CHECK_FAILED
 
 
