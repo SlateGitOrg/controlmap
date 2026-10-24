@@ -58,7 +58,11 @@ def test_edr_coverage() -> None:
     )
     assert resources(outcome) == ["device:D1", "device:D2", "device:D3"]
     messages = [f.message for f in outcome.findings]
-    assert messages == ["no EDR agent installed", "EDR agent has never reported", "EDR agent silent for 30 days"]
+    assert messages == [
+        "no EDR agent installed",
+        "EDR agent has never reported",
+        "EDR agent silent for 30 days",
+    ]
 
 
 def test_os_supported() -> None:
@@ -66,7 +70,12 @@ def test_os_supported() -> None:
     assert run_rule("endpoint.os_supported", [ok]).findings == []
     outcome = run_rule(
         "endpoint.os_supported",
-        [inventory(device("D1", os_version="13.6.9"), device("D2", platform="Linux", os_version="20.04"))],
+        [
+            inventory(
+                device("D1", os_version="13.6.9"),
+                device("D2", platform="Linux", os_version="20.04"),
+            )
+        ],
         {"minimum_versions": {"macOS": "14.0", "Linux": "22.04"}},
     )
     assert resources(outcome) == ["device:D1", "device:D2"]
@@ -84,10 +93,19 @@ def test_os_supported_flags_platforms_without_baseline_and_bad_versions() -> Non
 
 
 def test_screen_lock() -> None:
-    assert run_rule("endpoint.screen_lock", [inventory(device("D1", screen_lock_minutes=15))]).findings == []
+    assert (
+        run_rule("endpoint.screen_lock", [inventory(device("D1", screen_lock_minutes=15))]).findings
+        == []
+    )
     outcome = run_rule(
         "endpoint.screen_lock",
-        [inventory(device("D1", screen_lock_minutes=None), device("D2", screen_lock_minutes=0), device("D3", screen_lock_minutes=30))],
+        [
+            inventory(
+                device("D1", screen_lock_minutes=None),
+                device("D2", screen_lock_minutes=0),
+                device("D3", screen_lock_minutes=30),
+            )
+        ],
     )
     assert resources(outcome) == ["device:D1", "device:D2", "device:D3"]
     assert "30 min" in outcome.findings[2].message
@@ -119,10 +137,19 @@ def test_inventory_reconciled_flags_every_mismatch() -> None:
             ),
         ],
     )
-    assert resources(outcome) == ["device:D1", "device:D2", "device:D3", "device:D4", "nodevice@x.io"]
+    assert resources(outcome) == [
+        "device:D1",
+        "device:D2",
+        "device:D3",
+        "device:D4",
+        "nodevice@x.io",
+    ]
     relaxed = run_rule(
         "endpoint.inventory_reconciled",
-        [inventory(device("D1", owner_email="a@x.io")), roster(employee("a@x.io"), employee("b@x.io"))],
+        [
+            inventory(device("D1", owner_email="a@x.io")),
+            roster(employee("a@x.io"), employee("b@x.io")),
+        ],
         {"require_device_per_employee": False},
     )
     assert relaxed.findings == []

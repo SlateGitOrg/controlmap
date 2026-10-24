@@ -16,18 +16,25 @@ from .helpers import make_collector, write, write_yaml
 
 
 def collect_docs(tmp_path: Path) -> list[Evidence]:
-    return make_collector({"name": "docs", "type": "manual_documents", "path": "docs"}, tmp_path).collect()
+    return make_collector(
+        {"name": "docs", "type": "manual_documents", "path": "docs"}, tmp_path
+    ).collect()
 
 
 def doc(**over: Any) -> dict[str, Any]:
-    data: dict[str, Any] = {"kind": "access_review", "title": "Q3 review", "performed_on": "2026-07-15"}
+    data: dict[str, Any] = {
+        "kind": "access_review",
+        "title": "Q3 review",
+        "performed_on": "2026-07-15",
+    }
     data.update(over)
     return data
 
 
 def test_acme_documents_are_collected_with_hashed_attachments(tmp_path: Path) -> None:
     collector = make_collector(
-        {"name": "docs", "type": "manual_documents", "path": str(ACME / "data" / "documents")}, tmp_path
+        {"name": "docs", "type": "manual_documents", "path": str(ACME / "data" / "documents")},
+        tmp_path,
     )
     records = {r.subject: r for r in collector.collect()}
     assert sorted(records) == [
@@ -102,9 +109,19 @@ def test_custom_collector_registration(tmp_path: Path) -> None:
         allowed_keys: ClassVar[frozenset[str]] = frozenset({"value"})
 
         def collect(self) -> list[Evidence]:
-            return [self.evidence("test.static", "s", {"v": self.settings.text("value")}, "inline", self.collected_at())]
+            return [
+                self.evidence(
+                    "test.static",
+                    "s",
+                    {"v": self.settings.text("value")},
+                    "inline",
+                    self.collected_at(),
+                )
+            ]
 
-    [record] = make_collector({"name": "s", "type": "test_static", "value": "x"}, tmp_path).collect()
+    [record] = make_collector(
+        {"name": "s", "type": "test_static", "value": "x"}, tmp_path
+    ).collect()
     assert record.data == {"v": "x"}
     assert register_collector(StaticCollector) is StaticCollector  # idempotent
 

@@ -67,14 +67,15 @@ class MockGitHub:
     def from_settings(cls, doc: Settings) -> MockGitHub:
         doc.reject_unknown({"token", "repos"})
         repos: dict[str, MockRepo] = {}
-        raw_repos = doc.raw("repos") or {}
+        raw_repos = doc.raw("repos")
+        raw_repos = {} if raw_repos is None else raw_repos
         if not isinstance(raw_repos, Mapping):
             raise ConfigError(f"{doc.where}.repos: expected a mapping of owner/name to repo")
         for name in raw_repos:
             spec = Settings(raw_repos[name] or {}, f"{doc.where}.repos.{name}", ConfigError)
             spec.reject_unknown({"default_branch", "branches", "files"})
-            branches = spec.raw("branches") or {}
-            files = spec.raw("files") or {}
+            branches = spec.raw("branches", {})
+            files = spec.raw("files", {})
             if not isinstance(branches, Mapping) or not isinstance(files, Mapping):
                 raise ConfigError(f"{spec.where}: branches and files must be mappings")
             repos[str(name)] = MockRepo(

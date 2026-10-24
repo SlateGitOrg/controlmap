@@ -88,24 +88,46 @@ def test_parse_normalizes_and_sorts_mappings() -> None:
         ([control(iso27001=["A.8.35"])], {}, "unknown ISO 27001:2022 Annex A controls 8.35"),
         ([control(rules=[])], {}, "at least one rule"),
         ([control(rules=[{"rule": "nope.rule"}])], {}, "unknown rule 'nope.rule'"),
-        ([control(rules=[{"rule": "idp.mfa_enforced", "params": {"x": 1}}])], {}, "unknown parameter"),
         (
-            [control(rules=[{"rule": "idp.inactive_accounts", "params": {"max_days_since_login": "90"}}])],
+            [control(rules=[{"rule": "idp.mfa_enforced", "params": {"x": 1}}])],
+            {},
+            "unknown parameter",
+        ),
+        (
+            [
+                control(
+                    rules=[
+                        {"rule": "idp.inactive_accounts", "params": {"max_days_since_login": "90"}}
+                    ]
+                )
+            ],
             {},
             "must be int",
         ),
         (
-            [control(rules=[{"rule": "idp.inactive_accounts", "params": {"max_days_since_login": True}}])],
+            [
+                control(
+                    rules=[
+                        {"rule": "idp.inactive_accounts", "params": {"max_days_since_login": True}}
+                    ]
+                )
+            ],
             {},
             "got a boolean",
         ),
         ([control(rules=[{"rule": "idp.mfa_enforced", "freshness_days": 0}])], {}, ">= 1"),
         ([control(colour="red")], {}, "unknown key"),
         ([control()], {"version": 2}, "unsupported library version"),
-        ([control()], {"scope": {"tsc_categories": ["security", "magic"]}}, "unknown TSC categories"),
+        (
+            [control()],
+            {"scope": {"tsc_categories": ["security", "magic"]}},
+            "unknown TSC categories",
+        ),
     ],
 )
-def test_library_validation_errors(controls: list[dict[str, Any]], doc: dict[str, Any], message: str) -> None:
+def test_library_validation_errors(
+    controls: list[dict[str, Any]], doc: dict[str, Any], message: str
+) -> None:
     with pytest.raises(LibraryError, match=message):
         library(controls, **doc)
 
@@ -118,7 +140,11 @@ def test_out_of_scope_mapping_is_a_warning() -> None:
 def test_rule_registry_contents_and_custom_rules() -> None:
     names = {name for name in rule_registry() if not name.startswith("test.")}
     assert len(names) == 22
-    assert {"github.branch_protection", "cloud.kms_rotation", "endpoint.inventory_reconciled"} <= names
+    assert {
+        "github.branch_protection",
+        "cloud.kms_rotation",
+        "endpoint.inventory_reconciled",
+    } <= names
     with pytest.raises(RuleError, match="unknown rule"):
         get_rule("missing")
 

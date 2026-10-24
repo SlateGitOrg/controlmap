@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -15,13 +16,22 @@ from controlmap.canonical import canonical_json, pretty_json, sha256_bytes, sha2
 from controlmap.errors import ConfigError, ControlmapError, EvidenceError
 from controlmap.model import Attachment, Evidence, Status
 from controlmap.settings import Settings, expand_env, load_yaml
-from controlmap.timeutil import end_of_day, isoformat, optional_date, parse_date, parse_datetime, utc_now
+from controlmap.timeutil import (
+    end_of_day,
+    isoformat,
+    optional_date,
+    parse_date,
+    parse_datetime,
+    utc_now,
+)
 from controlmap.versions import compare_versions, parse_version
 
 # -- canonical -------------------------------------------------------------------------------
 _JSON = st.recursive(
     st.none() | st.booleans() | st.integers(-(2**53), 2**53) | st.text(max_size=8),
-    lambda children: st.lists(children, max_size=4) | st.dictionaries(st.text(max_size=5), children, max_size=4),
+    lambda children: (
+        st.lists(children, max_size=4) | st.dictionaries(st.text(max_size=5), children, max_size=4)
+    ),
     max_leaves=12,
 )
 
@@ -121,7 +131,15 @@ def test_env_expansion() -> None:
 
 def test_settings_typed_getters_and_error_locations(tmp_path: Path) -> None:
     s = Settings(
-        {"n": 3, "b": True, "t": " hi ", "l": ["a", 1], "one": "x", "nested": {"k": 1}, "items": [{"a": 1}]},
+        {
+            "n": 3,
+            "b": True,
+            "t": " hi ",
+            "l": ["a", 1],
+            "one": "x",
+            "nested": {"k": 1},
+            "items": [{"a": 1}],
+        },
         "cfg",
         ConfigError,
         tmp_path,
@@ -134,7 +152,7 @@ def test_settings_typed_getters_and_error_locations(tmp_path: Path) -> None:
     assert s.path("t") == tmp_path / "hi"
     assert s.optional_text("missing") is None
     assert s.flag("missing", True) is True
-    for call, message in [
+    checks: list[tuple[Callable[[], object], str]] = [
         (lambda: s.integer("b"), "cfg.b: expected an integer"),
         (lambda: s.integer("n", minimum=5), "must be >= 5"),
         (lambda: s.text("nested"), "expected a string"),
@@ -144,7 +162,8 @@ def test_settings_typed_getters_and_error_locations(tmp_path: Path) -> None:
         (lambda: s.items("n"), "expected a list"),
         (lambda: s.reject_unknown({"n"}), "unknown key"),
         (lambda: Settings([], "root", ConfigError), "expected a mapping"),
-    ]:
+    ]
+    for call, message in checks:
         with pytest.raises(ConfigError, match=message):
             call()
     with pytest.raises(ConfigError, match="must not be empty"):

@@ -19,7 +19,9 @@ SNAPSHOT = ACME / "data" / "aws" / "prod-snapshot-2026-09-28.json"
 def collect(tmp_path: Path, snapshot: dict[str, Any] | str) -> list[Any]:
     text = snapshot if isinstance(snapshot, str) else json.dumps(snapshot)
     write(tmp_path / "snap.json", text)
-    collector = make_collector({"name": "aws", "type": "aws_snapshot", "path": "snap.json"}, tmp_path)
+    collector = make_collector(
+        {"name": "aws", "type": "aws_snapshot", "path": "snap.json"}, tmp_path
+    )
     return collector.collect()
 
 
@@ -69,7 +71,11 @@ def test_absent_sections_produce_no_records(tmp_path: Path) -> None:
 
 
 def test_bucket_without_encryption_or_public_access_block(tmp_path: Path) -> None:
-    snapshot = {"format": "controlmap-aws-snapshot/1", "account_id": "9", "s3": {"buckets": [{"Name": "b"}]}}
+    snapshot = {
+        "format": "controlmap-aws-snapshot/1",
+        "account_id": "9",
+        "s3": {"buckets": [{"Name": "b"}]},
+    }
     [record] = collect(tmp_path, snapshot)
     bucket = record.data["buckets"][0]
     assert bucket["encrypted"] is False
@@ -99,7 +105,11 @@ def test_bucket_without_encryption_or_public_access_block(tmp_path: Path) -> Non
             {
                 "format": "controlmap-aws-snapshot/1",
                 "account_id": "1",
-                "ec2": {"describe_security_groups": {"SecurityGroups": [{"GroupId": "g", "IpPermissions": [{"FromPort": "22"}]}]}},
+                "ec2": {
+                    "describe_security_groups": {
+                        "SecurityGroups": [{"GroupId": "g", "IpPermissions": [{"FromPort": "22"}]}]
+                    }
+                },
             },
             "port must be an integer",
         ),
@@ -107,12 +117,18 @@ def test_bucket_without_encryption_or_public_access_block(tmp_path: Path) -> Non
             {
                 "format": "controlmap-aws-snapshot/1",
                 "account_id": "1",
-                "rds": {"describe_db_instances": {"DBInstances": [{"BackupRetentionPeriod": "lots"}]}},
+                "rds": {
+                    "describe_db_instances": {"DBInstances": [{"BackupRetentionPeriod": "lots"}]}
+                },
             },
             "section rds",
         ),
         (
-            {"format": "controlmap-aws-snapshot/1", "account_id": "1", "cloudtrail": {"describe_trails": {"trailList": [{}]}}},
+            {
+                "format": "controlmap-aws-snapshot/1",
+                "account_id": "1",
+                "cloudtrail": {"describe_trails": {"trailList": [{}]}},
+            },
             "missing Name",
         ),
     ],

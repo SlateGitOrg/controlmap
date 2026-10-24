@@ -93,14 +93,18 @@ def test_csv_structure_errors(tmp_path: Path) -> None:
         )
         with pytest.raises(CollectorError, match=message):
             collector.collect()
-    absent = make_collector({"name": "i", "type": "idp_csv", "path": "nope.csv", "tenant": "t"}, tmp_path)
+    absent = make_collector(
+        {"name": "i", "type": "idp_csv", "path": "nope.csv", "tenant": "t"}, tmp_path
+    )
     with pytest.raises(CollectorError, match="cannot read"):
         absent.collect()
 
 
 def test_unknown_preset_and_column_are_config_errors(tmp_path: Path) -> None:
     with pytest.raises(ConfigError, match="unknown preset"):
-        make_collector({"name": "i", "type": "idp_csv", "path": "x", "tenant": "t", "preset": "ad"}, tmp_path)
+        make_collector(
+            {"name": "i", "type": "idp_csv", "path": "x", "tenant": "t", "preset": "ad"}, tmp_path
+        )
     with pytest.raises(ConfigError, match="unknown key"):
         make_collector(
             {"name": "i", "type": "idp_csv", "path": "x", "tenant": "t", "columns": {"shoe": "x"}},
@@ -108,7 +112,10 @@ def test_unknown_preset_and_column_are_config_errors(tmp_path: Path) -> None:
         )
 
 
-HRIS_HEADER = "employee_id,email,status,start_date,termination_date,department,manager_email,training_completed_on\n"
+HRIS_HEADER = (
+    "employee_id,email,status,start_date,termination_date,department,manager_email,"
+    "training_completed_on\n"
+)
 
 
 def test_hris_roster(tmp_path: Path) -> None:
@@ -118,10 +125,17 @@ def test_hris_roster(tmp_path: Path) -> None:
         + "E2,b@x.io,terminated,2020-01-01,2026-09-01,Eng,M@x.io,2026-01-01\n"
         + "E1,a@x.io,Active,2021-01-01,,,,\n",
     )
-    [record] = make_collector({"name": "hr", "type": "hris_csv", "path": "hr.csv"}, tmp_path).collect()
+    [record] = make_collector(
+        {"name": "hr", "type": "hris_csv", "path": "hr.csv"}, tmp_path
+    ).collect()
     assert record.subject == "hris:hr"
     a, b = record.data["employees"]
-    assert (a["email"], a["status"], a["department"], a["training_completed_on"]) == ("a@x.io", "active", None, None)
+    assert (a["email"], a["status"], a["department"], a["training_completed_on"]) == (
+        "a@x.io",
+        "active",
+        None,
+        None,
+    )
     assert (b["termination_date"], b["manager_email"]) == ("2026-09-01", "m@x.io")
 
 
@@ -131,7 +145,10 @@ def test_hris_roster(tmp_path: Path) -> None:
         ("E1,a@x.io,retired,2020-01-01,,,,\n", "must be one of"),
         ("E1,a@x.io,terminated,2020-01-01,,,,\n", "required for terminated"),
         ("E1,a@x.io,terminated,2020-01-01,2019-01-01,,,\n", "before start_date"),
-        ("E1,a@x.io,active,2020-01-01,,,,\nE1,b@x.io,active,2020-01-01,,,,\n", "duplicate employee_id"),
+        (
+            "E1,a@x.io,active,2020-01-01,,,,\nE1,b@x.io,active,2020-01-01,,,,\n",
+            "duplicate employee_id",
+        ),
     ],
 )
 def test_hris_rejects_bad_rows(tmp_path: Path, row: str, message: str) -> None:
@@ -154,10 +171,21 @@ def test_endpoint_inventory(tmp_path: Path) -> None:
         + "D2,,,B@x.io,mac OS,14.6,Encrypted,,,,\n"
         + "D1,h1,s1,a@x.io,windows,10.0.22631,no,falcon,2026-09-29,10,2026-09-29\n",
     )
-    [record] = make_collector({"name": "mdm", "type": "endpoint_csv", "path": "mdm.csv"}, tmp_path).collect()
+    [record] = make_collector(
+        {"name": "mdm", "type": "endpoint_csv", "path": "mdm.csv"}, tmp_path
+    ).collect()
     d1, d2 = record.data["devices"]
-    assert (d1["platform"], d1["disk_encrypted"], d1["screen_lock_minutes"]) == ("Windows", False, 10)
-    assert (d2["platform"], d2["disk_encrypted"], d2["owner_email"], d2["edr_agent"]) == ("macOS", True, "b@x.io", None)
+    assert (d1["platform"], d1["disk_encrypted"], d1["screen_lock_minutes"]) == (
+        "Windows",
+        False,
+        10,
+    )
+    assert (d2["platform"], d2["disk_encrypted"], d2["owner_email"], d2["edr_agent"]) == (
+        "macOS",
+        True,
+        "b@x.io",
+        None,
+    )
 
 
 @pytest.mark.parametrize(

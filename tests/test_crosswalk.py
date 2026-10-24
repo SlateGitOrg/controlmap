@@ -39,7 +39,9 @@ def test_coverage_reports_gaps_honestly() -> None:
 
 
 def test_statuses_roll_up_from_an_evaluation() -> None:
-    run = evaluate(LIBRARY, [users(user("a@x.io", mfa_factors=[]))], ExceptionRegister([]), AS_OF, "Co")
+    run = evaluate(
+        LIBRARY, [users(user("a@x.io", mfa_factors=[]))], ExceptionRegister([]), AS_OF, "Co"
+    )
     crosswalk = build_crosswalk(LIBRARY, run)
     rows = {row.id: row for row in crosswalk.criteria}
     assert rows["CC6.1"].status is Status.FAIL

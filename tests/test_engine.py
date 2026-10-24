@@ -37,7 +37,9 @@ OS = {"rule": "endpoint.os_supported"}
 NONE = ExceptionRegister([])
 
 
-def status_of(library: Library, records: list[Evidence], register: ExceptionRegister = NONE) -> dict[str, Status]:
+def status_of(
+    library: Library, records: list[Evidence], register: ExceptionRegister = NONE
+) -> dict[str, Status]:
     run = evaluate(library, records, register, AS_OF, "Co")
     return {c.control_id: c.status for c in run.controls}
 
@@ -59,7 +61,9 @@ def test_empty_population_is_no_evidence_not_pass() -> None:
 
 
 def test_rule_errors_become_error_status() -> None:
-    run = evaluate(lib(ctrl("EP-03", OS)), [inventory(device("D1", os_version="n/a"))], NONE, AS_OF, "Co")
+    run = evaluate(
+        lib(ctrl("EP-03", OS)), [inventory(device("D1", os_version="n/a"))], NONE, AS_OF, "Co"
+    )
     result = run.controls[0].rules[0]
     assert result.status is Status.ERROR
     assert result.notes[0].startswith("rule error: RuleError")
@@ -67,7 +71,9 @@ def test_rule_errors_become_error_status() -> None:
 
 def test_staleness_and_freshness_overrides() -> None:
     old = inventory(device("D1"))
-    old = Evidence(old.kind, old.subject, old.source, old.collected_at.replace(month=7), old.data, "o")
+    old = Evidence(
+        old.kind, old.subject, old.source, old.collected_at.replace(month=7), old.data, "o"
+    )
     assert status_of(lib(ctrl("EP-01", DISK)), [old])["EP-01"] is Status.STALE
     relaxed = lib(ctrl("EP-01", DISK, freshness_days=70))
     assert status_of(relaxed, [old])["EP-01"] is Status.PASS
@@ -77,7 +83,14 @@ def test_staleness_and_freshness_overrides() -> None:
 
 def test_fail_takes_precedence_over_stale() -> None:
     record = inventory(device("D1", disk_encrypted=False))
-    stale = Evidence(record.kind, record.subject, record.source, record.collected_at.replace(year=2025), record.data, "o")
+    stale = Evidence(
+        record.kind,
+        record.subject,
+        record.source,
+        record.collected_at.replace(year=2025),
+        record.data,
+        "o",
+    )
     run = evaluate(lib(ctrl("EP-01", DISK)), [stale], NONE, AS_OF, "Co")
     result = run.controls[0].rules[0]
     assert result.status is Status.FAIL
@@ -86,7 +99,9 @@ def test_fail_takes_precedence_over_stale() -> None:
 
 
 def register(*entries: dict[str, Any], library: Library) -> ExceptionRegister:
-    return parse_exceptions(Settings({"exceptions": list(entries)}, "exc", ExceptionRegisterError), library)
+    return parse_exceptions(
+        Settings({"exceptions": list(entries)}, "exc", ExceptionRegisterError), library
+    )
 
 
 def exc(exc_id: str, approved: str, expires: str) -> dict[str, Any]:
@@ -114,7 +129,9 @@ def test_exceptions_turn_fail_into_excepted_only_while_active() -> None:
     expired = register(exc("EXC-2", "2025-01-01", "2025-12-31"), library=library)
     run = evaluate(library, [bad], expired, AS_OF, "Co")
     assert run.controls[0].status is Status.FAIL
-    assert run.controls[0].notes == ("exception EXC-2 matched findings but is not active on 2026-10-01",)
+    assert run.controls[0].notes == (
+        "exception EXC-2 matched findings but is not active on 2026-10-01",
+    )
 
     partial = users(user("a@x.io", mfa_factors=[]), user("c@x.io", mfa_factors=[]))
     assert status_of(library, [partial], active)["AC-01"] is Status.FAIL
@@ -130,7 +147,12 @@ def test_control_rolls_up_worst_rule() -> None:
 
 
 def snapshot(day: str, factors: list[str]) -> Evidence:
-    return ev("idp.users", {"users": [user("a@x.io", mfa_factors=factors)]}, subject="idp:t", collected=day)
+    return ev(
+        "idp.users",
+        {"users": [user("a@x.io", mfa_factors=factors)]},
+        subject="idp:t",
+        collected=day,
+    )
 
 
 def test_point_in_time_selection_ignores_future_evidence() -> None:

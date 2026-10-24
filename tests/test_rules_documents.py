@@ -48,7 +48,12 @@ def test_document_current_flags_old_and_unapproved() -> None:
         "document has no recorded approval",
     ]
     relaxed = dict(PARAMS, max_age_days=365, require_approval=False)
-    assert run_rule("manual.document_current", [doc("q1", "2026-01-10", approved_by=None)], relaxed).findings == []
+    assert (
+        run_rule(
+            "manual.document_current", [doc("q1", "2026-01-10", approved_by=None)], relaxed
+        ).findings
+        == []
+    )
 
 
 def test_document_current_ignores_documents_performed_after_as_of() -> None:

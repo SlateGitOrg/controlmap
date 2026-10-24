@@ -14,7 +14,9 @@ from controlmap.store import EvidenceStore
 
 
 def record(value: int, attachments: tuple[Attachment, ...] = ()) -> Evidence:
-    return Evidence("k", "s", "src", datetime(2026, 9, 30, tzinfo=UTC), {"v": value}, "o", attachments)
+    return Evidence(
+        "k", "s", "src", datetime(2026, 9, 30, tzinfo=UTC), {"v": value}, "o", attachments
+    )
 
 
 def test_put_is_idempotent_and_round_trips(tmp_path: Path) -> None:

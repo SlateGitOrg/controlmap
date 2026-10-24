@@ -36,7 +36,9 @@ def entry(**over: Any) -> dict[str, Any]:
 
 
 def register(*entries: dict[str, Any], **doc: Any) -> Any:
-    return parse_exceptions(Settings({"exceptions": list(entries), **doc}, "exc", ExceptionRegisterError), LIBRARY)
+    return parse_exceptions(
+        Settings({"exceptions": list(entries), **doc}, "exc", ExceptionRegisterError), LIBRARY
+    )
 
 
 def test_states_follow_approval_and_expiry_dates() -> None:
@@ -61,13 +63,28 @@ def test_matching_uses_control_rule_and_resource_patterns() -> None:
 def test_tracker_applies_only_active_entries_and_reports_usage() -> None:
     reg = register(
         entry(),
-        entry(id="EXC-2025-001", approved_on="2025-01-01", expires_on="2025-12-31", resources=["sg:old*"]),
-        entry(id="EXC-2026-011", control="AC-01", rule=None, resources=["nobody@x.io"], expires_on="2026-03-20"),
+        entry(
+            id="EXC-2025-001",
+            approved_on="2025-01-01",
+            expires_on="2025-12-31",
+            resources=["sg:old*"],
+        ),
+        entry(
+            id="EXC-2026-011",
+            control="AC-01",
+            rule=None,
+            resources=["nobody@x.io"],
+            expires_on="2026-03-20",
+        ),
         entry(id="EXC-2026-012", approved_on="2026-01-01", expires_on="2027-06-01"),
         policy={"max_duration_days": 365},
     )
     tracker = reg.tracker(date(2026, 3, 1))
-    findings = [Finding("sg:sg-0bastion1", "p22"), Finding("sg:old-1", "p22"), Finding("sg:web", "p22")]
+    findings = [
+        Finding("sg:sg-0bastion1", "p22"),
+        Finding("sg:old-1", "p22"),
+        Finding("sg:web", "p22"),
+    ]
     applied = tracker.apply("NW-02", "cloud.admin_ports_restricted", findings)
     assert [f.excepted_by for f in applied] == ["EXC-2026-010", None, None]
     assert tracker.inactive_matches("NW-02") == ["EXC-2025-001"]
@@ -106,4 +123,9 @@ def test_loading_files(tmp_path: Path) -> None:
     empty.write_text("", encoding="utf-8")
     assert load_exceptions(empty, LIBRARY).entries == ()
     acme = load_exceptions(ACME / "exceptions.yaml", LIBRARY)
-    assert [e.id for e in acme.entries] == ["EXC-2025-007", "EXC-2026-001", "EXC-2026-002", "EXC-2026-003"]
+    assert [e.id for e in acme.entries] == [
+        "EXC-2025-007",
+        "EXC-2026-001",
+        "EXC-2026-002",
+        "EXC-2026-003",
+    ]

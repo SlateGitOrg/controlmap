@@ -32,12 +32,14 @@ def user(email: str, **over: Any) -> dict[str, Any]:
 
 
 def users(*items: dict[str, Any]) -> Evidence:
-    return ev("idp.users", {"tenant": "t", "admin_groups": [], "users": list(items)}, subject="idp:t")
+    return ev(
+        "idp.users", {"tenant": "t", "admin_groups": [], "users": list(items)}, subject="idp:t"
+    )
 
 
 def employee(email: str, **over: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
-        "employee_id": email.split("@")[0],
+        "employee_id": email.split("@", maxsplit=1)[0],
         "email": email,
         "status": "active",
         "start_date": "2023-01-01",
@@ -64,7 +66,11 @@ def test_mfa_passes_when_every_active_human_is_enrolled() -> None:
 def test_mfa_flags_missing_and_disallowed_factors() -> None:
     outcome = run_rule(
         "idp.mfa_enforced",
-        [users(user("a@x.io", mfa_factors=[]), user("b@x.io", mfa_factors=["SMS"]), user("c@x.io"))],
+        [
+            users(
+                user("a@x.io", mfa_factors=[]), user("b@x.io", mfa_factors=["SMS"]), user("c@x.io")
+            )
+        ],
         {"disallowed_factors": ["sms"]},
     )
     assert resources(outcome) == ["a@x.io", "b@x.io"]
