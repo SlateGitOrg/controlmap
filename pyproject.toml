@@ -1,0 +1,71 @@
+[project]
+name = "controlmap"
+version = "0.1.0"
+description = "SOC 2 evidence automation: pluggable collectors, a control library with an ISO 27001:2022 Annex A crosswalk, freshness-aware rules, exception tracking and a hashed, verifiable evidence package."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0.2",
+    "jinja2>=3.1.4",
+    "cryptography>=43.0.0",
+]
+
+[project.scripts]
+controlmap = "controlmap.cli:main"
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.170.9",
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/controlmap"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "N", "C4", "PTH", "RET", "PL", "S", "TID", "DTZ", "ERA"]
+ignore = [
+    "PLR0911", "PLR0912", "PLR0913", "PLR2004", "PLR0915",
+    "S101",  # asserts are used for internal invariants and tests
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PLC0415", "DTZ"]
+"scripts/**" = ["S311", "T201"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+files = ["src", "tests", "scripts"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_decorators = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.coverage.run]
+branch = true
+source = ["controlmap"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload"]
