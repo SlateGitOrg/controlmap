@@ -1,0 +1,74 @@
+# SOC 2 Trust Services Criteria (2017 TSC, revised points of focus 2022): criterion identifiers
+# with SHORT TOPIC LABELS WRITTEN FOR THIS PROJECT. These labels are paraphrases to help
+# navigation; they are NOT the AICPA criteria text. Read the authoritative criteria in the
+# AICPA publication before relying on any mapping.
+framework: soc2-tsc-2017
+title: SOC 2 Trust Services Criteria (identifiers only, paraphrased labels)
+categories:
+  security: Common Criteria (Security)
+  availability: Availability
+  confidentiality: Confidentiality
+  processing_integrity: Processing Integrity
+  privacy: Privacy
+criteria:
+  - {id: CC1.1, category: security, label: Integrity and ethical values}
+  - {id: CC1.2, category: security, label: Board oversight of internal control}
+  - {id: CC1.3, category: security, label: Structures, reporting lines and authority}
+  - {id: CC1.4, category: security, label: Competence of personnel}
+  - {id: CC1.5, category: security, label: Accountability for control responsibilities}
+  - {id: CC2.1, category: security, label: Quality information for internal control}
+  - {id: CC2.2, category: security, label: Internal communication of responsibilities}
+  - {id: CC2.3, category: security, label: Communication with external parties}
+  - {id: CC3.1, category: security, label: Objectives that enable risk assessment}
+  - {id: CC3.2, category: security, label: Risk identification and analysis}
+  - {id: CC3.3, category: security, label: Fraud risk}
+  - {id: CC3.4, category: security, label: Assessment of significant changes}
+  - {id: CC4.1, category: security, label: Ongoing and separate evaluations}
+  - {id: CC4.2, category: security, label: Communication of control deficiencies}
+  - {id: CC5.1, category: security, label: Control activities that mitigate risk}
+  - {id: CC5.2, category: security, label: General controls over technology}
+  - {id: CC5.3, category: security, label: Policies and procedures}
+  - {id: CC6.1, category: security, label: Logical access security over protected assets}
+  - {id: CC6.2, category: security, label: User registration and de-registration}
+  - {id: CC6.3, category: security, label: Role-based access and least privilege}
+  - {id: CC6.4, category: security, label: Physical access restrictions}
+  - {id: CC6.5, category: security, label: Protection at asset disposal}
+  - {id: CC6.6, category: security, label: Threats from outside system boundaries}
+  - {id: CC6.7, category: security, label: Restricting transmission and movement of data}
+  - {id: CC6.8, category: security, label: Unauthorized or malicious software}
+  - {id: CC7.1, category: security, label: Detecting configuration changes and vulnerabilities}
+  - {id: CC7.2, category: security, label: Monitoring system components for anomalies}
+  - {id: CC7.3, category: security, label: Evaluating security events}
+  - {id: CC7.4, category: security, label: Responding to security incidents}
+  - {id: CC7.5, category: security, label: Recovering from security incidents}
+  - {id: CC8.1, category: security, label: Change management}
+  - {id: CC9.1, category: security, label: Business-disruption risk mitigation}
+  - {id: CC9.2, category: security, label: Vendor and business-partner risk}
+  - {id: A1.1, category: availability, label: Capacity management}
+  - {id: A1.2, category: availability, label: Environmental protection, backup and recovery infrastructure}
+  - {id: A1.3, category: availability, label: Recovery plan testing}
+  - {id: C1.1, category: confidentiality, label: Identifying and protecting confidential information}
+  - {id: C1.2, category: confidentiality, label: Disposing of confidential information}
+  - {id: PI1.1, category: processing_integrity, label: Processing objectives and specifications}
+  - {id: PI1.2, category: processing_integrity, label: System inputs}
+  - {id: PI1.3, category: processing_integrity, label: Data processing}
+  - {id: PI1.4, category: processing_integrity, label: System outputs}
+  - {id: PI1.5, category: processing_integrity, label: Stored data}
+  - {id: P1.1, category: privacy, label: Privacy notice}
+  - {id: P2.1, category: privacy, label: Choice and consent}
+  - {id: P3.1, category: privacy, label: Collection consistent with objectives}
+  - {id: P3.2, category: privacy, label: Explicit consent where required}
+  - {id: P4.1, category: privacy, label: Use of personal information}
+  - {id: P4.2, category: privacy, label: Retention of personal information}
+  - {id: P4.3, category: privacy, label: Disposal of personal information}
+  - {id: P5.1, category: privacy, label: Data-subject access}
+  - {id: P5.2, category: privacy, label: Correction of personal information}
+  - {id: P6.1, category: privacy, label: Disclosure to third parties}
+  - {id: P6.2, category: privacy, label: Records of authorized disclosures}
+  - {id: P6.3, category: privacy, label: Records of unauthorized disclosures}
+  - {id: P6.4, category: privacy, label: Third-party privacy commitments}
+  - {id: P6.5, category: privacy, label: Third-party notification of unauthorized disclosure}
+  - {id: P6.6, category: privacy, label: Breach notification}
+  - {id: P6.7, category: privacy, label: Accounting of disclosures}
+  - {id: P7.1, category: privacy, label: Quality of personal information}
+  - {id: P8.1, category: privacy, label: Inquiries, complaints and disputes}
