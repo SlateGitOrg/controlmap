@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ c.control_id }} {{ c.title }}</title><style>{{ css }}</style></head>
+<body><main>
+<p class="meta"><a href="../index.html">{{ company }}</a> &middot; evidence as of {{ as_of }}</p>
+<h1>{{ c.control_id }} &mdash; {{ c.title }} <span class="badge s-{{ c.status }}">{{ c.status }}</span></h1>
+<p>{{ c.description }}</p>
+<table>
+<tr><th>Owner</th><td>{{ c.owner }}</td></tr>
+<tr><th>SOC 2 TSC</th><td>{% for t in c.tsc %}<b>{{ t.id }}</b> {{ t.label }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>
+<tr><th>ISO 27001:2022 Annex A</th><td>{% for i in c.iso %}<b>A.{{ i.id }}</b> {{ i.title }}{% if not loop.last %}<br>{% endif %}{% else %}&mdash;{% endfor %}</td></tr>
+<tr><th>Exceptions applied</th><td>{{ c.exceptions_applied | join(", ") or "none" }}</td></tr>
+</table>
+{% for note in c.notes %}<div class="notice">{{ note }}</div>{% endfor %}
+{% for r in c.rules %}
+<h2><code>{{ r.rule }}</code> <span class="badge s-{{ r.status }}">{{ r.status }}</span></h2>
+<p>{{ r.description }}</p>
+<p class="meta">Items tested: {{ r.checked }}{% if r.params %} &middot; parameters: <code>{{ r.params_text }}</code>{% endif %}</p>
+{% for note in r.notes %}<div class="notice">{{ note }}</div>{% endfor %}
+{% if r.findings %}
+<h3>Findings</h3>
+<div class="wrap"><table><tr><th>Resource</th><th>Deviation</th><th>Exception</th></tr>
+{% for f in r.findings %}<tr><td class="mono">{{ f.resource }}</td><td>{{ f.message }}</td><td>{{ f.excepted_by or "open" }}</td></tr>
+{% endfor %}</table></div>
+{% endif %}
+<h3>Evidence relied on</h3>
+{% if r.evidence %}<div class="wrap"><table><tr><th>Kind</th><th>Subject</th><th>Collected</th><th>Age</th><th>Record</th></tr>
+{% for e in r.evidence %}<tr><td>{{ e.kind }}</td><td>{{ e.subject }}</td><td>{{ e.collected_at }}</td>
+<td>{{ e.age_days }} d{% if e.stale %} <span class="badge s-STALE">STALE</span>{% endif %}</td>
+<td class="mono"><a href="../evidence/{{ e.digest }}.json">{{ e.digest[:16] }}</a></td></tr>
+{% endfor %}</table></div>{% else %}<p>None collected.</p>{% endif %}
+{% endfor %}
+<div class="notice">{{ disclaimer }}</div>
+</main></body></html>

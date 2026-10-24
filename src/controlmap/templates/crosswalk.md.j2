@@ -1,0 +1,17 @@
+# Crosswalk: SOC 2 TSC ↔ ISO/IEC 27001:2022 Annex A
+
+Derived from the control library: a criterion and an Annex A control are linked when a company
+control maps to both. Labels are paraphrased topic names, not the official criteria or control text.
+
+## Trust Services Criteria in scope ({{ coverage.tsc_covered }}/{{ coverage.tsc_in_scope }} covered)
+
+| Criterion | Topic | Controls | Annex A | Status |
+|---|---|---|---|---|
+{% for row in criteria %}| {{ row.id }} | {{ row.label | md }} | {{ row.controls | join(", ") or "—" }} | {{ row.iso27001 | join(", ") or "—" }} | {{ row.status or "NO CONTROL" }} |
+{% endfor %}
+## ISO/IEC 27001:2022 Annex A ({{ coverage.iso_covered }}/{{ coverage.iso_total }} reached)
+
+| Annex A | Title | Controls | TSC | Status |
+|---|---|---|---|---|
+{% for row in iso %}| A.{{ row.id }} | {{ row.title | md }} | {{ row.controls | join(", ") or "—" }} | {{ row.tsc | join(", ") or "—" }} | {{ row.status or "—" }} |
+{% endfor %}

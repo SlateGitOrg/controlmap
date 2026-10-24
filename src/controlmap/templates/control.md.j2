@@ -1,0 +1,37 @@
+# {{ c.control_id }} — {{ c.title }}
+
+**Status:** {{ c.status }}  ·  **Owner:** {{ c.owner }}  ·  **Evidence as of:** {{ as_of }}
+
+{{ c.description }}
+
+| Framework | Mapping |
+|---|---|
+| SOC 2 TSC | {% for t in c.tsc %}{{ t.id }} {{ t.label | md }}{% if not loop.last %}; {% endif %}{% endfor %} |
+| ISO 27001:2022 Annex A | {% for i in c.iso %}A.{{ i.id }} {{ i.title | md }}{% if not loop.last %}; {% endif %}{% else %}—{% endfor %} |
+| Exceptions applied | {{ c.exceptions_applied | join(", ") or "none" }} |
+{% for note in c.notes %}
+> {{ note }}
+{% endfor %}
+{% for r in c.rules %}
+## Rule `{{ r.rule }}` — {{ r.status }}
+
+{{ r.description }}
+
+Items tested: {{ r.checked }}{% if r.params %} · parameters: `{{ r.params_text }}`{% endif %}
+{% for note in r.notes %}
+> {{ note }}
+{% endfor %}
+{% if r.findings %}
+| Resource | Deviation | Exception |
+|---|---|---|
+{% for f in r.findings %}| `{{ f.resource | md }}` | {{ f.message | md }} | {{ f.excepted_by or "open" }} |
+{% endfor %}{% endif %}
+**Evidence relied on**
+
+{% if r.evidence %}| Kind | Subject | Collected | Age (days) | Record |
+|---|---|---|---|---|
+{% for e in r.evidence %}| {{ e.kind }} | {{ e.subject | md }} | {{ e.collected_at }} | {{ e.age_days }}{% if e.stale %} (stale){% endif %} | [`{{ e.digest[:16] }}`](../evidence/{{ e.digest }}.json) |
+{% endfor %}{% else %}None collected.
+{% endif %}{% endfor %}
+---
+{{ disclaimer }}

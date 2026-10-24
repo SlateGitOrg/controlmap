@@ -1,0 +1,37 @@
+:root {
+  --bg: #fbfbf9; --fg: #1d1f21; --muted: #5d6166; --line: #d9dad6; --card: #ffffff;
+  --pass: #1f7a3f; --pass-bg: #e3f3e8; --fail: #b3261e; --fail-bg: #fbe5e3;
+  --warn: #8a5a00; --warn-bg: #fdf0d5; --info: #2f5d8a; --info-bg: #e3edf7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a; --fg: #e6e6e3; --muted: #a0a4a9; --line: #33363b; --card: #1d2024;
+    --pass: #6fd08f; --pass-bg: #18301f; --fail: #ff8f86; --fail-bg: #3a1d1b;
+    --warn: #f0c060; --warn-bg: #352a12; --info: #8fb8e6; --info-bg: #1b2a3a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.6rem; margin: 0 0 4px; } h2 { font-size: 1.2rem; margin: 32px 0 8px; }
+h3 { font-size: 1rem; margin: 20px 0 6px; }
+.meta { color: var(--muted); margin: 0 0 16px; }
+.notice { border: 1px solid var(--line); border-left: 4px solid var(--info); background: var(--card);
+  padding: 10px 14px; margin: 16px 0; }
+table { width: 100%; border-collapse: collapse; background: var(--card); margin: 8px 0 16px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.wrap { overflow-x: auto; }
+code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em; word-break: break-all; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem;
+  font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
+.s-PASS { color: var(--pass); background: var(--pass-bg); }
+.s-EXCEPTED { color: var(--info); background: var(--info-bg); }
+.s-STALE, .s-NO_EVIDENCE { color: var(--warn); background: var(--warn-bg); }
+.s-FAIL, .s-ERROR, .s-GAP { color: var(--fail); background: var(--fail-bg); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 12px 0; }
+.tile { background: var(--card); border: 1px solid var(--line); padding: 10px 12px; }
+.tile b { display: block; font-size: 1.5rem; }
+a { color: var(--info); }
+@media print { body { background: #fff; color: #000; } .notice { break-inside: avoid; } }

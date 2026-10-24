@@ -1,0 +1,18 @@
+# Exception register as of {{ as_of }}
+
+Exceptions are time-boxed, approved acceptances of specific deviations. Excepted findings remain
+listed in each control page so both the deviation and its approval are visible.
+
+{% if exceptions %}| Id | Control | Rule | Resources | State | Approved | Expires | Flags |
+|---|---|---|---|---|---|---|---|
+{% for e in exceptions %}| {{ e.id }} | {{ e.control }} | {{ e.rule or "any" }} | {{ e.resources | join(", ") | md }} | {{ e.state }} | {{ e.approved_on }} by {{ e.approved_by | md }} | {{ e.expires_on }} ({{ e.days_left }} d) | {{ e.flags | join(", ") or "—" }} |
+{% endfor %}
+{% for e in exceptions %}
+## {{ e.id }} — {{ e.control }}
+
+- **Reason:** {{ e.reason }}
+- **Compensating controls:** {{ e.compensating_controls | join("; ") or "none recorded" }}
+- **Risk owner:** {{ e.risk_owner }}
+{% if e.matched_resources %}- **Matched while not active:** {{ e.matched_resources | join(", ") }}
+{% endif %}{% endfor %}{% else %}No exceptions registered.
+{% endif %}
