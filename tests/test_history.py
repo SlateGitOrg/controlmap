@@ -147,7 +147,7 @@ def test_run_manifests_round_trip_and_detect_tampering(tmp_path: Path) -> None:
 
 
 def test_acme_old_access_review_kept_in_the_folder(acme: Path) -> None:
-    """The reviewer's reproduction: a 2025 review next to the current Q3 2026 one."""
+    """A 2025 review next to the current Q3 2026 one."""
     descriptor = {
         "kind": "access_review",
         "title": "Q2 2025 production access review",
