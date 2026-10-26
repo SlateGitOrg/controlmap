@@ -1,5 +1,7 @@
 # controlmap
 
+[![CI](https://github.com/SlateGitOrg/controlmap/actions/workflows/ci.yml/badge.svg)](https://github.com/SlateGitOrg/controlmap/actions/workflows/ci.yml)
+
 **SOC 2 evidence automation you can read end to end.** controlmap pulls evidence from the
 exports a company already has (GitHub branch protection and CODEOWNERS, an AWS configuration
 snapshot, an identity-provider user export, an HR roster, an MDM endpoint inventory, signed-off
@@ -21,9 +23,9 @@ can check with nothing but `shasum`.
   be code they can review, rather than a black-box SaaS agent.
 - **GRC and security teams** who want to rerun "are we still compliant?" checks
   in CI and hand auditors a package that cannot be quietly edited afterwards.
-- **Reviewers of this portfolio project.** It shows how plugin architecture, deterministic
-  hashing, point-in-time evaluation and tamper-evident packaging fit together in about 5k lines
-  of typed Python.
+- **Anyone who wants a small reference implementation** of plugin architecture, deterministic
+  hashing, point-in-time evaluation and tamper-evident packaging, in about 5k lines of typed
+  Python.
 
 ## What it does
 
@@ -86,9 +88,9 @@ Module map (`src/controlmap/`):
 [docs/COLLECTORS.md](docs/COLLECTORS.md) covers every input format, and
 [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) covers what the package integrity does and does not protect against.
 
-## Quickstart
+## Quick start
 
-Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.12 if needed).
+Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.12 if needed). Runs on Linux and macOS.
 
 ```bash
 make install            # uv sync --frozen
@@ -285,8 +287,6 @@ against the mock server.
   every policy.
 - **Single-user tool.** The store is a local directory with no locking for concurrent writers
   (writes are atomic renames, so a crash cannot leave a half-written record).
-- **CI has not run.** `.github/workflows/ci.yml` mirrors `make check` and `make demo`, but the
-  repository has not been pushed, so the workflow has never executed on GitHub.
 
 ## Roadmap
 
